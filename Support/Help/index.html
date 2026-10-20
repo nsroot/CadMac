@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CadMac Kullanım Kılavuzu</title>
+<style>
+  :root {
+    --bg: #1e2329; --panel: #262c33; --panel2: #2d343c; --text: #dfe3e8; --muted: #9aa4af;
+    --accent: #6cb6ff; --orange: #e08a1e; --border: #3a424c; --code: #ffd479; --ok: #5fd38d;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f6f7f9; --panel: #ffffff; --panel2: #eef1f4; --text: #1f2328; --muted: #5d6670;
+            --accent: #0a66c2; --border: #d8dde3; --code: #9a5b00; --ok: #1a7f37; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; background: var(--bg); color: var(--text); }
+  nav { position: fixed; top: 0; left: 0; bottom: 0; width: 230px; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--border); padding: 18px 0; }
+  nav .brand { font-weight: 700; font-size: 16px; padding: 0 18px 12px; }
+  nav .brand span { color: var(--accent); }
+  nav a { display: block; padding: 5px 18px; color: var(--muted); text-decoration: none; font-size: 13px; }
+  nav a:hover { color: var(--text); background: var(--panel2); }
+  main { margin-left: 230px; padding: 28px 44px 80px; max-width: 1040px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 21px; margin: 42px 0 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 16px; margin: 24px 0 6px; }
+  p, li { color: var(--text); }
+  .lead { color: var(--muted); font-size: 15px; margin-top: 0; }
+  code, kbd { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
+  code { color: var(--code); }
+  kbd { background: var(--panel2); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--panel2); font-weight: 600; }
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  .tip { border-left: 3px solid var(--ok); }
+  .warn { border-left: 3px solid var(--orange); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .layout { display: grid; grid-template-columns: 110px 1fr 140px; grid-template-rows: auto 1fr auto auto; gap: 4px; height: 230px; margin: 12px 0; font-size: 12px; }
+  .layout div { background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; color: var(--muted); }
+  .layout .top { grid-column: 1 / 4; }
+  .layout .canvas { background: #262d36; color: #cfd6de; }
+  .layout .cmd { grid-column: 2 / 3; }
+  .layout .status { grid-column: 2 / 3; }
+  .layout .left { grid-row: 2 / 5; }
+  .layout .right { grid-row: 2 / 5; grid-column: 3; }
+  #cmdsearch { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; }
+  #commands a.run { color: var(--accent); text-decoration: none; font-weight: 600; font-family: ui-monospace, Menlo, monospace; }
+  #commands a.run:hover { text-decoration: underline; }
+  .cat { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">Cad<span>Mac</span> Kılavuz</div>
+  <a href="#baslangic">Başlarken</a>
+  <a href="#arayuz">Arayüz</a>
+  <a href="#fare">Fare ve Trackpad</a>
+  <a href="#klavye">Klavye Kısayolları</a>
+  <a href="#komutsatiri">Komut Satırı</a>
+  <a href="#koordinat">Koordinat Girişi</a>
+  <a href="#birimler">Birimler ve Ölçüm</a>
+  <a href="#yardimcilar">Snap, Ortho, Polar, Grid</a>
+  <a href="#secim">Nesne Seçimi ve Grip</a>
+  <a href="#cizim">Çizim Komutları</a>
+  <a href="#duzenleme">Düzenleme Komutları</a>
+  <a href="#olcu">Ölçülendirme ve Yazı</a>
+  <a href="#katman">Katmanlar ve Özellikler</a>
+  <a href="#blok">Bloklar ve Block Editor</a>
+  <a href="#layout">Layout'lar ve Viewport'lar</a>
+  <a href="#dosya">Dosyalar: DXF, DWG, PDF</a>
+  <a href="#yedek">Otomatik Kaydetme ve Kurtarma</a>
+  <a href="#claude">Claude ile Çizim (MCP)</a>
+  <a href="#dil">Dil</a>
+  <a href="#degisken">Sistem Değişkenleri</a>
+  <a href="#komutlar">Tüm Komutlar</a>
+  <a href="#sinirlar">Bilinen Sınırlamalar</a>
+</nav>
+
+<main>
+<h1>CadMac Kullanım Kılavuzu</h1>
+<p class="lead">macOS için yerel 2B çizim uygulaması. AutoCAD kullananlar için tanıdık komutlar, kısayollar ve komut satırı akışı.</p>
+
+<h2 id="baslangic">Başlarken</h2>
+<ol>
+  <li><b>Yeni çizim:</b> <kbd>⌘N</kbd>. Var olan dosya: <kbd>⌘O</kbd> (DXF ve DWG).</li>
+  <li><b>Bir komut yazın</b> ve <kbd>Enter</kbd> ya da <kbd>Space</kbd>'e basın. Örnek: <code>L</code> → çizgi, <code>C</code> → daire, <code>REC</code> → dikdörtgen.</li>
+  <li>Komut satırındaki <b>istemi (prompt)</b> takip edin: nokta tıklayın ya da koordinat yazın.</li>
+  <li>Komutu bitirmek için <kbd>Enter</kbd> / sağ tık, iptal için <kbd>Esc</kbd>.</li>
+  <li><b>Kaydet:</b> <kbd>⌘S</kbd> (DXF olarak).</li>
+</ol>
+<div class="box tip"><b>İpucu:</b> Çizim alanındayken doğrudan yazmaya başlayın; yazdıklarınız otomatik olarak komut satırına gider. <kbd>Enter</kbd>'a boşken basmak son komutu tekrarlar.</div>
+
+<h2 id="arayuz">Arayüz</h2>
+<div class="layout">
+  <div class="top">Pencere başlığı · sağ üstte panel aç/kapa düğmeleri</div>
+  <div class="left">Araç Paleti<br>(Tool Sets)</div>
+  <div class="canvas">Çizim Alanı</div>
+  <div class="right">Layers | Properties<br>(sekmeli panel)</div>
+  <div class="cmd">Komut Satırı (geçmiş + istem)</div>
+  <div class="status">Durum Çubuğu: koordinat · GRID SNAP ORTHO POLAR OSNAP LWT</div>
+</div>
+<ul>
+  <li><b>Araç Paleti (sol):</b> Draw, Modify, Annotation ve Block &amp; Tools grupları. Simgenin üzerine gelince komut adı ve kısayolu görünür.</li>
+  <li><b>Sağ panel:</b> <b>Layers</b> sekmesi katman yönetimi, <b>Properties</b> sekmesi seçili nesnelerin özellikleri.</li>
+  <li><b>Panelleri gizle/göster:</b> pencerenin sağ üstündeki iki düğme, ya da <kbd>⌥⌘1</kbd> (sol palet) ve <kbd>⌥⌘2</kbd> (sağ panel). Durum bir sonraki açılışta hatırlanır.</li>
+  <li><b>Durum çubuğu:</b> imleç koordinatı, çizim yardımcısı düğmeleri ve geçerli katman. OSNAP düğmesine sağ tıklayınca snap ayarları açılır.</li>
+  <li><b>Arka plan:</b> View → Dark Background ile koyu/açık arasında geçiş.</li>
+</ul>
+
+<h2 id="fare">Fare ve Trackpad</h2>
+<table>
+  <tr><th>Hareket</th><th>Sonuç</th></tr>
+  <tr><td>Sol tık</td><td>Nokta seçer / nesne seçer</td></tr>
+  <tr><td>Soldan sağa sürükleme</td><td><b>Window</b> seçimi (mavi): tamamen içerdekiler</td></tr>
+  <tr><td>Sağdan sola sürükleme</td><td><b>Crossing</b> seçimi (yeşil, kesikli): değenlerin hepsi</td></tr>
+  <tr><td>Boş alana tık + ikinci tık</td><td>Tıkla-tıkla seçim penceresi</td></tr>
+  <tr><td><kbd>⇧</kbd> + tık / sürükleme</td><td>Seçimden çıkarır</td></tr>
+  <tr><td>Çift tık</td><td>Yazı → düzenleyici; blok → Block Editor; ölçü → özellikler</td></tr>
+  <tr><td>Sağ tık (komut sırasında)</td><td><kbd>Enter</kbd> ile aynı</td></tr>
+  <tr><td>Sağ tık (komut yokken)</td><td>Bağlam menüsü (Erase, Move, Copy, Edit Block…)</td></tr>
+  <tr><td>İki parmak kaydırma</td><td>Pan</td></tr>
+  <tr><td>Pinch (iki parmak sıkıştırma)</td><td>Zoom (imleç etrafında)</td></tr>
+  <tr><td>Mouse tekerleği / <kbd>⌘</kbd> + kaydırma</td><td>Zoom</td></tr>
+  <tr><td>Orta tuş sürükleme</td><td>Pan</td></tr>
+  <tr><td>Orta tuş çift tık / trackpad akıllı zoom</td><td>Zoom Extents (her şeyi göster)</td></tr>
+</table>
+
+<h2 id="klavye">Klavye Kısayolları</h2>
+<div class="grid2">
+<table>
+  <tr><th>Tuş</th><th>İşlev</th></tr>
+  <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Girişi onayla, komutu bitir, son komutu tekrarla</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Komutu iptal et, seçimi temizle</td></tr>
+  <tr><td><kbd>Delete</kbd></td><td>Seçili nesneleri sil</td></tr>
+  <tr><td><kbd>Tab</kbd></td><td>Komut adını otomatik tamamla</td></tr>
+  <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>Önceki komut girişleri</td></tr>
+  <tr><td><kbd>F1</kbd> / <kbd>⌘?</kbd></td><td>Bu kılavuz</td></tr>
+  <tr><td><kbd>F3</kbd></td><td>Object Snap aç/kapa</td></tr>
+  <tr><td><kbd>F7</kbd></td><td>Grid</td></tr>
+  <tr><td><kbd>F8</kbd></td><td>Ortho</td></tr>
+  <tr><td><kbd>F9</kbd></td><td>Snap</td></tr>
+  <tr><td><kbd>F10</kbd></td><td>Polar tracking</td></tr>
+  <tr><td><kbd>F11</kbd></td><td>Nesne yakalama izleme (OTRACK)</td></tr>
+  <tr><td><kbd>F12</kbd></td><td>Dinamik giriş (DYN) kutucukları</td></tr>
+</table>
+<table>
+  <tr><th>Tuş</th><th>İşlev</th></tr>
+  <tr><td><kbd>⌘Z</kbd> / <kbd>⇧⌘Z</kbd></td><td>Geri al / Yinele</td></tr>
+  <tr><td><kbd>⌘C</kbd> <kbd>⌘X</kbd> <kbd>⌘V</kbd></td><td>Nesne kopyala / kes / yapıştır</td></tr>
+  <tr><td><kbd>⌘A</kbd></td><td>Hepsini seç</td></tr>
+  <tr><td><kbd>⌘0</kbd></td><td>Zoom Extents</td></tr>
+  <tr><td><kbd>⌘+</kbd> / <kbd>⌘-</kbd></td><td>Yakınlaş / Uzaklaş</td></tr>
+  <tr><td><kbd>⌥⌘1</kbd> / <kbd>⌥⌘2</kbd></td><td>Sol / sağ paneli gizle-göster</td></tr>
+  <tr><td><kbd>⌥⌘3</kbd> / <kbd>⌃9</kbd></td><td>Komut satırını gizle-göster</td></tr>
+  <tr><td><kbd>⌘S</kbd> / <kbd>⇧⌘S</kbd></td><td>Kaydet / Farklı kaydet (DXF)</td></tr>
+  <tr><td><kbd>⇧⌘E</kbd></td><td>PDF olarak dışa aktar</td></tr>
+  <tr><td><kbd>⇧⌘P</kbd></td><td>Tüm layout'ları tek PDF'e yayınla (PUBLISH)</td></tr>
+  <tr><td><kbd>⌘P</kbd></td><td>Yazdır / Plot</td></tr>
+  <tr><td><kbd>⌃⌘F</kbd></td><td>Tam ekran</td></tr>
+</table>
+</div>
+
+<h2 id="komutsatiri">Komut Satırı</h2>
+<p>Komut satırı AutoCAD'deki gibi çalışır. İstem, beklenen girdiyi ve seçenekleri gösterir:</p>
+<div class="box"><code>Specify center point for circle [3P/2P]:</code></div>
+<ul>
+  <li><b>Seçenekler</b> köşeli parantez içindedir. Büyük harfle yazılmış kısmı yazmanız yeterli: <code>3P</code>, <code>2P</code>; <code>cuTting edges</code> için <code>T</code>.</li>
+  <li><b>Varsayılan değer</b> açılı parantez içindedir (<code>&lt;2.5&gt;</code>); boş <kbd>Enter</kbd> varsayılanı kabul eder.</li>
+  <li>Komut adları ve kısayolları büyük/küçük harf duyarsızdır: <code>line</code>, <code>LINE</code>, <code>l</code> aynıdır.</li>
+  <li>Yazarken altta öneriler görünür; <kbd>Tab</kbd> ilk öneriyi tamamlar.</li>
+  <li><b>Gizle/göster:</b> üst çubuktaki terminal düğmesi, <kbd>⌥⌘3</kbd>, <kbd>⌃9</kbd> (AutoCAD gibi) ya da <code>COMMANDLINEHIDE</code> / <code>COMMANDLINE</code>. Gizliyken yine her yerde yazabilirsiniz: istem ve yazdıklarınız <b>imlecin yanındaki kutuda</b> görünür (<kbd>Tab</kbd> tamamlar, <kbd>⌫</kbd> siler, <kbd>Esc</kbd> temizler); DIST gibi sonuçlar sol altta birkaç saniyelik bildirim olarak çıkar. Tercih hatırlanır.</li>
+  <li>Komut sırasında başka komut yazarsanız mevcut komut iptal edilir. <code>'ZOOM</code>, <code>'ORTHO</code>, <code>'GRID</code>, <code>'SNAP</code> komutun içinde (transparan) çalışır.</li>
+</ul>
+
+<h2 id="koordinat">Koordinat Girişi</h2>
+<table>
+  <tr><th>Biçim</th><th>Anlamı</th><th>Örnek</th></tr>
+  <tr><td><code>x,y</code></td><td>Mutlak koordinat</td><td><code>100,50</code></td></tr>
+  <tr><td><code>@dx,dy</code></td><td>Son noktaya göre bağıl</td><td><code>@200,0</code></td></tr>
+  <tr><td><code>@uzunluk&lt;açı</code></td><td>Bağıl kutupsal (açı derece, saat yönü tersine)</td><td><code>@150&lt;45</code></td></tr>
+  <tr><td><code>uzunluk&lt;açı</code></td><td>Orijine göre kutupsal</td><td><code>100&lt;30</code></td></tr>
+  <tr><td><code>sayı</code></td><td><b>Doğrudan mesafe</b>: imlecin gösterdiği yönde o kadar ilerler</td><td>İmleci sağa tutup <code>500</code></td></tr>
+  <tr><td><code>@</code></td><td>Son noktanın kendisi</td><td><code>@</code></td></tr>
+</table>
+<div class="box tip"><b>Doğrudan mesafe + Ortho/Polar</b> en hızlı çizim yoludur: <kbd>F8</kbd> ile Ortho'yu açın, imleci yöne getirin, uzunluğu yazıp <kbd>Enter</kbd>'a basın.</div>
+<h3>Tek seferlik snap (override)</h3>
+<p>Nokta istenirken şu kısaltmaları yazınca sonraki tık yalnızca o snap türünü kullanır:
+<code>END</code> uç, <code>MID</code> orta, <code>CEN</code> merkez, <code>QUA</code> çeyrek, <code>INT</code> kesişim, <code>PER</code> dik, <code>TAN</code> teğet, <code>NEA</code> en yakın, <code>NOD</code> nokta, <code>INS</code> ekleme noktası.</p>
+
+<h2 id="birimler">Birimler ve Ölçüm</h2>
+<p>Her çizimin bir <b>birimi</b> vardır: 1 çizim biriminin gerçekte ne kadar olduğu (mm, cm, m, inç, feet). Yeni çizimler <b>milimetre</b> ile başlar; DXF/DWG dosyalarında kayıtlı birim (<code>$INSUNITS</code>) okunur ve kaydedilir.</p>
+<ul>
+  <li><b>Birimi değiştirmek:</b> <code>UNITS</code> (UN) yazın ve seçin — <code>MI</code> milimetre, <code>CE</code> santimetre, <code>ME</code> metre, <code>IN</code> inç, <code>FE</code> feet; ya da kısaca <code>mm</code>, <code>cm</code>, <code>m</code>. Aynı ayar, seçim yokken <b>Properties</b> sekmesindeki <i>Units</i> listesinde de vardır.</li>
+  <li>Birimi değiştirmek geometriyi <b>ölçeklemez</b>; yalnızca sayıların ne anlama geldiğini belirler. Çizimi gerçekten mm'den m'ye çevirmek için <code>SCALE</code> ile 0.001 uygulayın.</li>
+  <li>Durum çubuğunun sağında geçerli birim, solunda birimli imleç koordinatı görünür.</li>
+</ul>
+<table>
+  <tr><th>Komut</th><th>Örnek çıktı (birim mm)</th></tr>
+  <tr><td><code>DIST</code> (DI)</td><td><code>Distance = 1250 mm (125 cm · 1.25 m)</code></td></tr>
+  <tr><td><code>AREA</code> (AA)</td><td><code>Area = 6000000 mm² (6 m²), Perimeter = 10000 mm (1000 cm · 10 m)</code></td></tr>
+  <tr><td><code>LIST</code> (LI), <code>ID</code></td><td>Uzunluk, yarıçap ve alanlar birimli gösterilir</td></tr>
+  <tr><td>Çizim sırasında</td><td>İmleç yanındaki ipucu: <code>1250 mm &lt; 30°</code></td></tr>
+  <tr><td>Properties</td><td>Length / Area / Circumference alanları birimli</td></tr>
+</table>
+<div class="box tip"><b>İpucu:</b> Ölçü (dimension) yazılarına birim eklemek AutoCAD'deki gibi isteğe bağlıdır; ölçünün <i>Text override</i> alanına <code>&lt;&gt; mm</code> yazarak ekleyebilirsiniz.</div>
+
+<h2 id="yardimcilar">Snap, Ortho, Polar, Grid</h2>
+<table>
+  <tr><th>Yardımcı</th><th>Açıklama</th></tr>
+  <tr><td><b>OSNAP</b> <kbd>F3</kbd></td><td>Nesne noktalarına yapışma. İmleç yaklaşınca sarı işaret ve etiket görünür (□ uç, △ orta, ○ merkez, ◇ çeyrek, ✕ kesişim, ⊥ dik...). Türleri seçmek için <code>OSNAP</code> komutu veya durum çubuğunda OSNAP'a sağ tık.</td></tr>
+  <tr><td><b>ORTHO</b> <kbd>F8</kbd></td><td>Hareketi yatay/dikey ile sınırlar.</td></tr>
+  <tr><td><b>POLAR</b> <kbd>F10</kbd></td><td>45° katlarına yaklaşınca yeşil iz çizgisiyle o açıya kilitler. Ortho ile aynı anda açık olmaz.</td></tr>
+  <tr><td><b>GRID</b> <kbd>F7</kbd></td><td>Arka plan ızgarası; aralık <code>GRIDUNIT</code> ile.</td></tr>
+  <tr><td><b>SNAP</b> <kbd>F9</kbd></td><td>İmleci ızgara adımına yuvarlar; adım <code>SNAPUNIT</code> ile.</td></tr>
+  <tr><td><b>OTRACK</b> <kbd>F11</kbd></td><td><b>Nesne yakalama izleme.</b> İmleci bir snap noktasında (uç, orta, merkez…) yarım saniye tutun: nokta yakalanır ve yeşil <b>+</b> ile işaretlenir. İmleç o noktayla yatay veya dikey hizaya gelince yeşil kesikli iz çizgisi çıkar ve imleç hizaya kilitlenir; iki yakalanan noktanın hizaları kesişirse ikisine birden kilitlenir. Aynı noktada tekrar bekleyince yakalama kalkar. Nokta tıklanınca veya komut bitince temizlenir.</td></tr>
+  <tr><td><b>DYN</b> <kbd>F12</kbd></td><td><b>Dinamik giriş.</b> Nokta istenirken imlecin yanında canlı değer kutucukları görünür: taban noktası varsa <b>uzunluk</b> ve <b>açı</b>, yoksa <b>X</b> ve <b>Y</b>. Sayı yazınca ilk kutuya yazılır; <kbd>Tab</kbd> diğer kutuya geçer; <kbd>Enter</kbd> veya <kbd>Space</kbd> uygular (boş bırakılan kutu imlecin değerini kullanır). Sadece uzunluk yazıp Enter'a basmak imleç yönünde o kadar ilerler. Virgül, <code>@</code>, <code>&lt;</code> ya da harf yazınca normal komut girişine dönülür. <kbd>⌫</kbd> siler, <kbd>Esc</kbd> temizler.</td></tr>
+  <tr><td><b>LWT</b></td><td>Çizgi kalınlıklarını ekranda gösterir.</td></tr>
+</table>
+<div class="box tip"><b>Örnek:</b> <code>L</code> → ilk noktaya tıklayın → <code>3000</code> <kbd>Tab</kbd> <code>30</code> <kbd>Enter</kbd> = 30°'de 3000 mm'lik çizgi.</div>
+
+<h2 id="secim">Nesne Seçimi ve Grip</h2>
+<ul>
+  <li><b>Önce seç, sonra komut</b> (noun-verb): nesneleri seçin, sonra <code>M</code> yazın — seçim doğrudan kullanılır.</li>
+  <li><b>Önce komut, sonra seç</b>: komut <code>Select objects:</code> der; seçin ve <kbd>Enter</kbd>'a basın.</li>
+  <li>Seçim isteminde: <code>ALL</code> hepsi, <code>L</code> son çizilen, <code>P</code> önceki seçim.</li>
+  <li>Kilitli ya da kapalı katmandaki nesneler seçilemez.</li>
+  <li><b>Hızlı seçim (QSELECT):</b> nesne türü (Line, Circle, Text…), özellik (Katman, Renk, Çizgi tipi, Kalınlık, Uzunluk, Alan, Yarıçap, Yazı içeriği, Blok adı), işlem (<code>=</code>, <code>≠</code>, <code>&gt;</code>, <code>&lt;</code>, <i>Contains</i>, <code>*joker*</code>) ve değer seçerek tüm çizimde veya mevcut seçimde seçim yapar. Mod: <i>Replace</i> (yerine koy), <i>Append</i> (ekle), <i>Exclude</i> (eşleşmeyenleri seç).</li>
+  <li><b>Gruplar:</b> <code>GROUP</code> (G) seçili nesneleri adlı bir gruba koyar (<code>N</code> ad, <code>D</code> açıklama; ad vermezseniz <code>*A1</code> gibi adsız grup). Gruptaki bir nesneye tıklamak tüm grubu seçer. <code>UNGROUP</code> grubu çözer, <code>GROUPEDIT</code> ekleme/çıkarma/yeniden adlandırma yapar, <code>GROUPSELECT</code> grup seçimini açıp kapatır. Gruplar DXF/DWG'ye kaydedilir.</li>
+  <li><b>Geçici gizleme:</b> <code>ISOLATEOBJECTS</code> seçili nesneler dışındaki her şeyi gizler, <code>HIDEOBJECTS</code> seçilileri gizler, <code>UNISOLATEOBJECTS</code> hepsini geri gösterir. Bu yalnızca görünümü etkiler; dosyaya kaydedilmez, geri alma geçmişine girmez.</li>
+  <li><b>Grip düzenleme:</b> komut yokken seçili nesnelerde mavi kareler (grip) görünür. Bir gripe tıklayın, yeni konuma tıklayın: uç taşınır, orta grip nesneyi taşır, daire çeyrek gripi yarıçapı değiştirir. İptal: <kbd>Esc</kbd> veya sağ tık.</li>
+</ul>
+
+<h2 id="cizim">Çizim Komutları</h2>
+<table>
+  <tr><th>Komut</th><th>Kullanım</th></tr>
+  <tr><td><code>LINE</code> (L)</td><td>Ardışık çizgi parçaları. <code>U</code> son parçayı geri alır, <code>C</code> başlangıca kapatır.</td></tr>
+  <tr><td><code>PLINE</code> (PL)</td><td>Tek parça polyline. <code>A</code> teğet yay moduna, <code>L</code> çizgiye geçer; <code>W</code> kalınlık, <code>C</code> kapat. <kbd>Esc</kbd> çizileni korur.</td></tr>
+  <tr><td><code>RECTANG</code> (REC)</td><td>İki köşe. İkinci köşe için <code>@genişlik,yükseklik</code> pratiktir.</td></tr>
+  <tr><td><code>CIRCLE</code> (C)</td><td>Merkez + yarıçap; <code>D</code> çap, <code>2P</code> iki nokta, <code>3P</code> üç nokta.</td></tr>
+  <tr><td><code>ARC</code> (A)</td><td>Varsayılan üç nokta; <code>C</code> ile merkez-başlangıç-bitiş (saat yönü tersine).</td></tr>
+  <tr><td><code>ELLIPSE</code> (EL)</td><td>Eksen uçları + diğer yarı eksen; <code>C</code> merkezden.</td></tr>
+  <tr><td><code>POLYGON</code> (POL)</td><td>Kenar sayısı, merkez, <code>I</code> içe / <code>C</code> dışa çizili, yarıçap. <code>E</code> kenardan.</td></tr>
+  <tr><td><code>SPLINE</code> (SPL)</td><td>Geçiş noktalarından eğri; <kbd>Enter</kbd> bitirir, <code>C</code> kapatır.</td></tr>
+  <tr><td><code>POINT</code>, <code>DIVIDE</code>, <code>MEASURE</code></td><td>Nokta; bir nesneyi eşit parçaya böl / belirli aralıkla noktala.</td></tr>
+  <tr><td><code>DONUT</code>, <code>XLINE</code>, <code>RAY</code>, <code>REVCLOUD</code></td><td>Halka, yardımcı çizgi, ışın, revizyon bulutu.</td></tr>
+  <tr><td><code>HATCH</code> (H)</td><td>Kapalı alana tıklayın; sınır otomatik bulunur. Seçenekler: <code>P</code> desen (SOLID / ANSI31 / ANSI37), <code>C</code> aralık (sCale), <code>A</code> açı, <code>S</code> ile kapalı nesneleri seçerek.</td></tr>
+</table>
+
+<h2 id="duzenleme">Düzenleme Komutları</h2>
+<table>
+  <tr><th>Komut</th><th>Kullanım</th></tr>
+  <tr><td><code>MOVE</code> (M) / <code>COPY</code> (CO)</td><td>Seç → taban noktası → ikinci nokta. COPY birden çok kopya yapar, <kbd>Enter</kbd> ile biter.</td></tr>
+  <tr><td><code>ROTATE</code> (RO)</td><td>Taban noktası → açı (derece ya da tıklama). <code>C</code> kopyalayarak döndür, <code>R</code> referans açı.</td></tr>
+  <tr><td><code>SCALE</code> (SC)</td><td>Taban noktası → ölçek çarpanı. <code>R</code> referans uzunluk.</td></tr>
+  <tr><td><code>MIRROR</code> (MI)</td><td>Ayna çizgisi iki nokta; sonra kaynak silinsin mi (<code>Y</code>/<code>N</code>).</td></tr>
+  <tr><td><code>STRETCH</code> (S)</td><td><b>Sağdan sola crossing</b> pencereyle seçin; penceredeki köşeler taşınır.</td></tr>
+  <tr><td><code>OFFSET</code> (O)</td><td>Mesafe → nesne → taraf. <code>T</code> bir noktadan geçecek şekilde.</td></tr>
+  <tr><td><code>TRIM</code> (TR) / <code>EXTEND</code> (EX)</td><td>Hızlı mod: tüm nesneler sınırdır, sadece kırpılacak/uzatılacak parçaya tıklayın. <code>T</code>/<code>B</code> ile sınır seçebilirsiniz.</td></tr>
+  <tr><td><code>FILLET</code> (F)</td><td><code>R</code> ile yarıçap, sonra iki nesne. Yarıçap 0 keskin köşe yapar. <code>P</code> polyline'ın tüm köşeleri.</td></tr>
+  <tr><td><code>CHAMFER</code> (CHA)</td><td><code>D</code> ile mesafeler, sonra iki çizgi.</td></tr>
+  <tr><td><code>BREAK</code> (BR)</td><td>Nesneye tıklanan nokta ile ikinci nokta arası silinir; <kbd>Enter</kbd> tek noktadan böler.</td></tr>
+  <tr><td><code>JOIN</code> (J)</td><td>Uçları birleşen çizgi/yay/polyline'ları tek parça yapar.</td></tr>
+  <tr><td><code>EXPLODE</code> (X)</td><td>Polyline, blok, ölçü ve taramayı parçalarına ayırır.</td></tr>
+  <tr><td><code>LENGTHEN</code> (LEN)</td><td><code>DE</code> fark, <code>P</code> yüzde, <code>T</code> toplam uzunluk; sonra uca tıklayın.</td></tr>
+  <tr><td><code>ARRAY</code> (AR)</td><td>Dikdörtgen (satır/sütun/aralık), polar (merkez/adet/açı) veya yol (path) boyunca.</td></tr>
+  <tr><td><code>MATCHPROP</code> (MA)</td><td>Kaynak nesnenin katman/renk/çizgi tipini diğerlerine uygular.</td></tr>
+  <tr><td><code>ALIGN</code> (AL)</td><td>Seç → 1. kaynak noktası → 1. hedef noktası → (isteğe bağlı) 2. kaynak ve hedef noktası → "ölçeklensin mi?". Nesneleri taşır, döndürür ve isterseniz hizalama noktalarına göre ölçekler.</td></tr>
+  <tr><td><code>DRAWORDER</code> (DR)</td><td>Çizim sırası: <code>F</code> en öne, <code>B</code> en arkaya, <code>A</code>/<code>U</code> seçilen referans nesnenin üstüne/altına. Kısayollar: <code>BRINGTOFRONT</code>, <code>SENDTOBACK</code>, <code>BRINGABOVE</code>, <code>SENDUNDER</code>. <code>TEXTTOFRONT</code> yazı ve ölçüleri öne getirir.</td></tr>
+  <tr><td><code>OVERKILL</code></td><td>Seçili nesnelerde birebir aynı (üst üste binmiş) kopyaları siler ve aynı doğru üzerinde çakışan çizgileri birleştirir. Aynı katman/renk/çizgi tipi olanlara uygulanır.</td></tr>
+  <tr><td><code>ERASE</code> (E)</td><td>Siler (ya da seçip <kbd>Delete</kbd>).</td></tr>
+</table>
+
+<h2 id="olcu">Ölçülendirme ve Yazı</h2>
+<table>
+  <tr><th>Komut</th><th>Kullanım</th></tr>
+  <tr><td><code>DIMLINEAR</code> (DLI)</td><td>İki nokta (ya da <code>S</code> ile nesne seçerek) → ölçü çizgisi yeri. İmlecin konumuna göre yatay/dikey seçilir; <code>H</code>, <code>V</code>, <code>R</code> zorlar.</td></tr>
+  <tr><td><code>DIMALIGNED</code> (DAL)</td><td>İki noktaya paralel ölçü.</td></tr>
+  <tr><td><code>DIMRADIUS</code> (DRA) / <code>DIMDIAMETER</code> (DDI)</td><td>Yay veya daire seçin, yazının yerini gösterin.</td></tr>
+  <tr><td><code>DIMANGULAR</code> (DAN)</td><td>İki çizgi ya da bir yay; sonra yay konumu.</td></tr>
+  <tr><td><code>DIMCONTINUE</code> (DCO) / <code>DIMBASELINE</code> (DBA)</td><td>Son doğrusal ölçüden zincir / taban ölçü devam eder.</td></tr>
+  <tr><td><code>QLEADER</code> (LE)</td><td>Ok ucu, kırılma noktaları, <kbd>Enter</kbd>, sonra yazı.</td></tr>
+  <tr><td><code>TEXT</code> (DT)</td><td>Başlangıç noktası, yükseklik, açı, yazı. Her <kbd>Enter</kbd> yeni satır; boş <kbd>Enter</kbd> bitirir. <code>J</code> hizalama (C, M, R, TL, MC, BR...).</td></tr>
+  <tr><td><code>MTEXT</code> (T)</td><td>Bir dikdörtgen çizin, açılan editörde çok satırlı yazı yazın.</td></tr>
+  <tr><td><code>FIND</code></td><td>Yazı, MTEXT, blok attribute değerleri ve ölçü yazılarında arar (büyük/küçük harf duyarsız), bulduklarını seçer. Ardından yeni yazıyı girerseniz hepsinde değiştirir (tek adımda geri alınır); <kbd>Enter</kbd> sadece seçer. Önceden seçim varsa yalnızca onun içinde arar.</td></tr>
+</table>
+<p>Ölçü görünümü: <code>DIMSCALE</code> (genel ölçek), <code>DIMTXT</code> (yazı yüksekliği), <code>DIMASZ</code> (ok boyu), <code>DIMDEC</code> (ondalık hane). Yazıyı düzenlemek için çift tıklayın; ölçü yazısını Properties → <i>Text override</i> ile değiştirin (<code>&lt;&gt;</code> ölçülen değeri temsil eder).</p>
+
+<h2 id="katman">Katmanlar ve Özellikler</h2>
+<h3>Layers sekmesi</h3>
+<ul>
+  <li><b>New</b> yeni katman, <b>Delete</b> boş katmanı siler, <b>Set Current</b> (ya da çift tık) geçerli katman yapar. ✓ geçerli katmanı gösterir.</li>
+  <li>Ad hücresine tıklayıp yeniden adlandırın. <b>On</b>, <b>Freeze</b>, <b>Lock</b>, renk, çizgi tipi ve kalınlık doğrudan tablodan değişir.</li>
+  <li>0 ve Defpoints katmanları silinemez/yeniden adlandırılamaz; Defpoints yazdırılmaz.</li>
+</ul>
+<h3>Properties sekmesi</h3>
+<ul>
+  <li>Seçim yokken: <b>yeni çizilecek</b> nesnelerin katmanı, rengi, çizgi tipi, kalınlığı ve çizim ayarları.</li>
+  <li>Seçim varken: ortak özellikler (farklıysa <i>*VARIES*</i>). Tek nesnede geometri alanları (başlangıç/bitiş, yarıçap, yazı içeriği...) düzenlenebilir — değeri yazıp <kbd>Enter</kbd>.</li>
+  <li>Renk listesinde <i>Select Color…</i> ile istediğiniz RGB rengi seçebilirsiniz.</li>
+</ul>
+<h3>Katman komutları</h3>
+<p><code>LAYMCUR</code> seçilen nesnenin katmanını geçerli yapar · <code>LAYOFF</code> kapatır · <code>LAYFRZ</code> dondurur · <code>LAYLCK</code>/<code>LAYULK</code> kilitler/açar · <code>LAYISO</code> yalnız onu gösterir · <code>LAYON</code> hepsini açar · <code>LAYTHW</code> hepsini çözer.</p>
+
+<h2 id="blok">Bloklar ve Block Editor</h2>
+<ol>
+  <li><b>Blok oluştur:</b> <code>BLOCK</code> (B) → ad → taban noktası → nesneleri seçin → <kbd>Enter</kbd>. Seçilen nesneler bloğa dönüşür.</li>
+  <li><b>Blok ekle:</b> <code>INSERT</code> (I) → ad → ekleme noktası → ölçek → açı.</li>
+  <li><b>Blok düzenle:</b> bloğa <b>çift tıklayın</b> ya da <code>BEDIT</code> (BE) / sağ tık → <i>Edit Block…</i>. Blok <b>ayrı bir sekmede</b> açılır:
+    <ul>
+      <li>Üstte turuncu <b>Block Editor</b> bandı; sarı işaret bloğun <b>taban noktasıdır</b>.</li>
+      <li>Tüm çizim/düzenleme komutları çalışır.</li>
+      <li><b>Save Block</b> (<code>BSAVE</code>) tüm blok kopyalarını günceller — ana çizimde tek adımda geri alınabilir.</li>
+      <li><b>Close Block Editor</b> (<code>BCLOSE</code>) sekmeyi kapatır; kaydedilmemiş değişiklik varsa sorar.</li>
+    </ul>
+  </li>
+  <li><code>EXPLODE</code> bloğu ayrı nesnelere çevirir.</li>
+</ol>
+<h3>Blok attribute'ları (antet alanları, sayfa no, tarih…)</h3>
+<ol>
+  <li><code>ATTDEF</code> (ATT): önce isterseniz <code>I</code> görünmez, <code>C</code> sabit, <code>P</code> önayarlı modlarını açın; sonra <b>etiket</b> (ör. <code>SAYFA_NO</code>), <b>istem</b> (ör. "Sayfa numarası"), <b>varsayılan değer</b>, ekleme noktası, yükseklik ve açı girin.</li>
+  <li><code>BLOCK</code> ile attribute tanımlarını da seçerek blok oluşturun.</li>
+  <li><code>INSERT</code> bloğu eklerken her attribute için değer sorar (<kbd>Enter</kbd> = varsayılan).</li>
+  <li>Değerleri değiştirmek için attribute'lu bloğa <b>çift tıklayın</b> ya da <code>ATTEDIT</code> (ATE): tüm alanlar tek pencerede düzenlenir. Değerler Properties panelinde de görünür ve değiştirilebilir.</li>
+  <li>DWG/DXF dosyalarındaki attribute'lar kendi katman ve renkleriyle okunur ve kaydedilir. "Geçerli layout adı" alanı (AutoCAD <code>CTAB</code> field) her layout'ta o sayfanın adını gösterir.</li>
+</ol>
+<p><code>COUNT</code>: bir bloğa tıklayınca o bloğun tüm kopyalarını seçer ve sayar; <kbd>Enter</kbd> ile tüm blokların sayım listesini verir.</p>
+
+<h2 id="layout">Layout'lar ve Viewport'lar</h2>
+<p>Çizim alanının altında <b>Model | Layout1 | Layout2 | +</b> sekmeleri vardır. <b>Model</b> gerçek ölçülerle çizdiğiniz alandır; her <b>Layout</b> bir kağıt sayfasıdır (birim: mm). DWG/DXF dosyalarındaki layout'lar otomatik olarak sekme olur.</p>
+<ul>
+  <li><b>Sekme değiştir:</b> sekmeye tıklayın veya <code>LAYOUT</code> → <code>S</code> → ad; <code>MODEL</code> Model sekmesine döner. Her sekme kendi zoom konumunu hatırlar.</li>
+  <li><b>Yeni layout:</b> <b>+</b> düğmesi veya <code>LAYOUT</code> → <code>N</code>. Yeni sayfa A3 yatay ve model alanını gösteren bir viewport ile gelir.</li>
+  <li><b>Sağ tık menüsü</b> (sekme üzerinde): Rename, Page Setup, Move Left/Right, Delete. Sekmeye çift tıklamak yeniden adlandırır.</li>
+  <li><b>Sayfa boyutu:</b> sağ tık → <i>Page Setup…</i> veya <code>PAGESETUP</code>: A4–A0, Letter, Tabloid, ARCH D; dikey/yatay. Kesikli çizgi yazdırılabilir alanı gösterir.</li>
+  <li><b>Viewport oluştur:</b> <code>MVIEW</code> (MV) → iki köşe; <code>F</code> (Fit) yazdırılabilir alanı doldurur. Viewport model alanının tamamını gösterecek şekilde açılır.</li>
+  <li><b>Viewport görünümünü ayarla:</b> viewport'un <b>içine çift tıklayın</b> (mavi kalın çerçeve olur) → iki parmakla kaydırma pan, pinch/tekerlek zoom yapar. <kbd>Esc</kbd> veya dışarıya çift tık ile çıkın; değişiklik tek adımda geri alınabilir.</li>
+  <li><b>Tam ölçek:</b> viewport'u seçin, Properties → <b>Scale</b> alanına <code>1:50</code>, <code>1:100</code>, <code>1/20</code> veya <code>2:1</code> yazın. <b>Locked = Yes</b> görünümü kilitler.</li>
+  <li>Viewport çerçevesini grip'lerle büyütüp küçültebilir, MOVE/COPY/ERASE ile düzenleyebilirsiniz (ölçek korunur).</li>
+  <li>Layout'a doğrudan çizim yapabilirsiniz (antet, notlar): tüm çizim ve yazı komutları kağıt üzerinde çalışır. Kağıtta renk 7 siyah görünür.</li>
+  <li><b>Yazdırma/PDF:</b> bir layout sekmesindeyken <code>PLOT</code> ve <i>Export as PDF</i> sayfayı <b>gerçek kağıt boyutunda</b> çıkarır (A3 → 420 × 297 mm). Model sekmesinde tüm çizim A3'e sığdırılır.</li>
+</ul>
+<div class="box warn">Model nesnelerini viewport'un içinden düzenlemek (AutoCAD'deki MSPACE düzenleme) henüz yok: model nesnelerini değiştirmek için <b>Model</b> sekmesine geçin. Döndürülmüş (twist) ve dikdörtgen olmayan (clip) viewport'lar dikdörtgen olarak gösterilir.</div>
+
+<h2 id="dosya">Dosyalar: DXF, DWG, PDF</h2>
+<table>
+  <tr><th>İşlem</th><th>Açıklama</th></tr>
+  <tr><td>DXF açma/kaydetme</td><td>Yerel biçim. AutoCAD 2004 (AC1018) uyumlu DXF yazılır; R12'den güncele DXF okunur.</td></tr>
+  <tr><td>DWG açma</td><td>CadMac'ın kendi okuyucusu dönüştürücü olmadan açar: R13, R14, 2000, 2004, 2007, 2010, 2013, 2018 (AC1012–AC1032). Dosyada CadMac'in taşıyamadığı nesne varsa açılışta hangileri olduğu söylenir.</td></tr>
+  <tr><td>DWG kaydetme</td><td>AutoCAD 2000 (AC1015) olarak yazılır — ek kurulum gerekmez. Gerçek renkler en yakın dizin rengine dönüşür, CadMac'in taşıyamadığı nesneler dosyaya girmez; o yüzden önemli orijinallerin kopyasını saklayın.</td></tr>
+  <tr><td>PDF</td><td>File → Export as PDF (<kbd>⇧⌘E</kbd>) — A3 yatay, çizimin tamamı.</td></tr>
+  <tr><td>Toplu PDF (PUBLISH)</td><td>File → <i>Publish All Layouts to PDF…</i> (<kbd>⇧⌘P</kbd>) veya <code>PUBLISH</code>: tüm layout'lar sekme sırasıyla, her sayfa kendi kağıt boyutunda, tek bir çok sayfalı vektör PDF'e basılır; bitince PDF açılır.</td></tr>
+  <tr><td>Yazdırma</td><td><code>PLOT</code> / <kbd>⌘P</kbd> — sayfaya sığdırılır; yazdırılmaz katmanlar atlanır.</td></tr>
+  <tr><td>Temizlik</td><td><code>PURGE</code> kullanılmayan katman, blok ve çizgi tiplerini siler.</td></tr>
+</table>
+<div class="box warn">AutoCAD 2000 sınırını aşan çok büyük çizimlerde CadMac, kuruluysa LibreDWG (<code>brew install libredwg</code>) veya ODA File Converter'a düşer. Test ederken <code>CADMAC_DWG_WRITER=converter</code> ile dönüştürücüyü zorlayabilirsiniz.</div>
+
+<h2 id="yedek">Otomatik Kaydetme ve Kurtarma</h2>
+<ul>
+  <li>Açık her çizim, değişiklik varsa <b>5 dakikada bir</b> arka planda yedeklenir (çalışmanızı yavaşlatmaz). Süreyi <code>SAVETIME</code> ile değiştirin; <code>0</code> kapatır.</li>
+  <li>Çizimi kaydettiğinizde veya normal kapattığınızda yedek silinir.</li>
+  <li>CadMac beklenmedik şekilde kapanırsa (çökme, elektrik kesintisi), bir sonraki açılışta <b>"Kaydedilmemiş çizimler kurtarılsın mı?"</b> sorulur: <i>Kurtar</i> çizimi "(Recovered)" adıyla açar — sonra <kbd>⌘S</kbd> ile kaydedin. <i>Yedekleri Sil</i> ve <i>Sonra</i> seçenekleri de vardır.</li>
+  <li>Yedek klasörü: <code>~/Library/Application Support/CadMac/AutoSave</code>.</li>
+</ul>
+
+<h2 id="claude">Claude ile Çizim (MCP)</h2>
+<p>Terminaldeki <b>Claude Code</b> açık CadMac penceresini yönetebilir: çizer, nesneleri ve alanları okur, ölçer, ekran görüntüsüne bakar. Mevcut Claude aboneliğiniz kullanılır; <b>API anahtarı gerekmez</b>.</p>
+<h3>Kurulum (bir kez)</h3>
+<div class="box"><code>claude mcp add -s user cadmac -- /Users/nikasert/Desktop/CadMac/build/CadMac.app/Contents/MacOS/cadmac-mcp</code></div>
+<p>Sonra CadMac'i açın, Claude Code'da <code>/mcp</code> ile "cadmac" listede görünür.</p>
+<h3>Kullanım</h3>
+<ul>
+  <li>Örnek istekler: "A-WALL katmanına 4×3 m bir oda çiz", "bu çizimdeki kapalı alanları m² olarak listele", "seçili nesneleri kırmızı yap", "şu iki nokta arası mesafe ne?".</li>
+  <li><b>Önizle, sen onayla:</b> Claude'un önerdiği değişiklikler çizimde <b>mor</b> önizleme olarak görünür; üstte açılan küçük panelde ne yapılacağı ve kaç nesnenin ekleneceği/değişeceği/silineceği yazar. <b>Uygula</b> (<kbd>⏎</kbd>) çizime ekler, <b>Reddet</b> (<kbd>Esc</kbd>) iptal eder. Onaylanan her değişiklik tek bir <kbd>⌘Z</kbd> adımıdır ("Claude: …").</li>
+  <li>Okuma işlemleri (bilgi, liste, ölçüm, ekran görüntüsü, zoom, seçim) onay istemez.</li>
+  <li>Onay en fazla 10 dakika bekler; Claude Code daha erken zaman aşımına düşerse <code>MCP_TOOL_TIMEOUT</code> ortam değişkeniyle süreyi uzatın.</li>
+  <li>Claude yalnızca kendi bilgisayarınızdaki CadMac'e yerel bir bağlantıyla (sadece sizin kullanıcınızın erişebildiği) bağlanır.</li>
+</ul>
+
+<h2 id="dil">Dil</h2>
+<p>CadMac menüsü → <b>Dil</b>: <i>Sistem dili</i>, <i>English</i> veya <i>Türkçe</i>. Değişiklik uygulama yeniden başlatılınca geçerli olur. Türkçe arayüzde menüler, istemler, mesajlar ve paneller Türkçedir; komut adları (LINE, TRIM…) ve köşeli parantez içindeki seçenek kısayolları (<code>[3P/2P/Diameter]</code>) AutoCAD alışkanlığı için İngilizce kalır.</p>
+
+<h2 id="degisken">Sistem Değişkenleri</h2>
+<p>Değişken adını doğrudan yazın (ör. <code>LTSCALE</code>) ya da <code>SETVAR</code> kullanın:</p>
+<table>
+  <tr><th>Değişken</th><th>Anlamı</th></tr>
+  <tr><td><code>LTSCALE</code></td><td>Kesikli çizgi tiplerinin genel ölçeği</td></tr>
+  <tr><td><code>TEXTSIZE</code></td><td>Varsayılan yazı yüksekliği</td></tr>
+  <tr><td><code>DIMSCALE</code>, <code>DIMTXT</code>, <code>DIMASZ</code>, <code>DIMDEC</code>, <code>DIMEXO</code>, <code>DIMEXE</code>, <code>DIMGAP</code></td><td>Ölçü stili: ölçek, yazı, ok, ondalık, uzatma çizgisi boşluk/taşma, yazı boşluğu</td></tr>
+  <tr><td><code>FILLETRAD</code>, <code>CHAMFERA</code>, <code>CHAMFERB</code>, <code>OFFSETDIST</code></td><td>Fillet yarıçapı, pah mesafeleri, offset mesafesi</td></tr>
+  <tr><td><code>SAVETIME</code></td><td>Otomatik kaydetme aralığı (dakika; 0 = kapalı)</td></tr>
+  <tr><td><code>GRIDUNIT</code>, <code>SNAPUNIT</code>, <code>LUPREC</code></td><td>Izgara aralığı, snap adımı, koordinat ve ölçüm hassasiyeti (ondalık hane)</td></tr>
+</table>
+
+<h2 id="komutlar">Tüm Komutlar</h2>
+<p class="muted">Bu liste uygulamanın komut kayıtlarından otomatik doldurulur. Bir komut adına tıklayınca, açık çizimde o komut başlar.</p>
+<input id="cmdsearch" type="search" placeholder="Komut ara: ör. trim, daire, ölçü…" oninput="filterCommands(this.value)">
+<table id="commands">
+  <thead><tr><th>Komut</th><th>Kısayol</th><th>Açıklama</th></tr></thead>
+  <tbody><tr><td colspan="3" class="muted">Komut listesi uygulama içinde açıldığında yüklenir.</td></tr></tbody>
+</table>
+
+<h2 id="sinirlar">Bilinen Sınırlamalar</h2>
+<ul>
+  <li>Yalnızca 2B; 3B nesneler ve xref desteklenmez. Viewport içinden model düzenleme (MSPACE) yoktur.</li>
+  <li>DWG kaydı yalnızca AutoCAD 2000 (AC1015) biçimindedir; geri dönüşümsüz sadeleştirme yapar (gerçek renk → en yakın ACI, bazı dinamik blok tanımları aktarılmaz). Üzerinde çalıştığınız DWG'nin orijinalini saklayın.</li>
+  <li>MLEADER, MLINE, WIPEOUT, resimler (IMAGE), OLE, 3B nesneler ve ordinate ölçüler dosya açılırken taşınmaz — açılışta hangi tipten kaç nesne dışarıda kaldığı uyarı olarak söylenir; MTEXT biçimlendirmesi düz yazıya döner.</li>
+  <li>Elips ve spline için TRIM/EXTEND/BREAK desteklenmez; CHAMFER yalnızca çizgi-çizgi.</li>
+  <li>Hatch sınır tespiti içteki adaları (delikleri) dikkate almaz.</li>
+  <li>Claude (MCP) silmek istediği nesneleri çizimde göstermez, panelde sayısını yazar.</li>
+</ul>
+<p class="muted">CadMac · Bu kılavuz uygulama paketine gömülüdür.</p>
+</main>
+
+<script>
+// Turkish descriptions keyed by command name; the app supplies names, aliases and English summaries.
+const TR = {
+  LINE: "Düz çizgi parçaları", PLINE: "2B polyline", RECTANG: "Dikdörtgen polyline", CIRCLE: "Daire", ARC: "Yay",
+  ELLIPSE: "Elips", POLYGON: "Düzgün çokgen", POINT: "Nokta", SPLINE: "Noktalardan geçen eğri", DONUT: "Dolu halka",
+  XLINE: "Sonsuz yardımcı çizgi", RAY: "Işın", REVCLOUD: "Revizyon bulutu", HATCH: "Kapalı alanı tarama ile doldurur",
+  TEXT: "Tek satır yazı", MTEXT: "Çok satırlı yazı", ERASE: "Nesneleri siler", MOVE: "Taşır", COPY: "Kopyalar",
+  ROTATE: "Döndürür", SCALE: "Ölçekler", MIRROR: "Aynalar", STRETCH: "Crossing pencereyle esnetir", OFFSET: "Paralel kopya",
+  TRIM: "Kırpar", EXTEND: "Uzatır", FILLET: "Köşeyi yuvarlatır", CHAMFER: "Köşeye pah kırar", BREAK: "İki nokta arasını keser",
+  JOIN: "Nesneleri birleştirir", EXPLODE: "Parçalarına ayırır", LENGTHEN: "Uzunluğu değiştirir", ARRAY: "Desenli kopya (dizi)",
+  ARRAYRECT: "Dikdörtgen dizi", ARRAYPOLAR: "Polar dizi", ARRAYPATH: "Yol boyunca dizi", MATCHPROP: "Özellikleri kopyalar",
+  DIVIDE: "Eşit aralıkla noktalar", MEASURE: "Belirli aralıkla noktalar", DIMLINEAR: "Yatay/dikey ölçü", DIMALIGNED: "Hizalı ölçü",
+  DIMRADIUS: "Yarıçap ölçüsü", DIMDIAMETER: "Çap ölçüsü", DIMANGULAR: "Açı ölçüsü", DIMCONTINUE: "Zincir ölçü", DIMBASELINE: "Taban ölçü",
+  QLEADER: "Ok ve yazı (leader)", BLOCK: "Nesnelerden blok tanımı oluşturur", INSERT: "Blok ekler", BEDIT: "Blok düzenle: blok tanımını Block Editor sekmesinde açar",
+  BSAVE: "Düzenlenen blok tanımını kaydeder", BCLOSE: "Blok düzenleyiciyi (Block Editor) kapatır", DIST: "Mesafe ve açı ölçer", AREA: "Alan ve çevre",
+  ID: "Nokta koordinatı", UNITS: "Çizim birimi: mm, cm, m, inç, feet", LAYOUT: "Layout (sayfa) oluştur, adlandır, sil, geç", MVIEW: "Layout'ta viewport oluşturur",
+  MODEL: "Model sekmesine geçer", PUBLISH: "Tüm layout'ları tek çok sayfalı PDF'e basar", SAVETIME: "Otomatik kaydetme aralığı (dakika)",
+  ATTDEF: "Blok attribute tanımı oluşturur", ATTEDIT: "Blok attribute değerlerini düzenler", QSELECT: "Türe ve özelliğe göre hızlı seçim",
+  ALIGN: "Nokta çiftleriyle taşı, döndür, ölçekle", DRAWORDER: "Çizim sırasını değiştirir", BRINGTOFRONT: "En öne getirir",
+  SENDTOBACK: "En arkaya gönderir", BRINGABOVE: "Referans nesnenin üstüne getirir", SENDUNDER: "Referans nesnenin altına gönderir",
+  TEXTTOFRONT: "Yazı ve ölçüleri öne getirir", GROUP: "Seçili nesnelerden grup oluşturur", UNGROUP: "Grubu çözer",
+  GROUPEDIT: "Gruba ekle/çıkar/yeniden adlandır", GROUPSELECT: "Grup seçimini aç/kapat", OVERKILL: "Çift ve çakışan nesneleri temizler",
+  COUNT: "Blok kopyalarını sayar", FIND: "Yazı bulur ve değiştirir", ISOLATEOBJECTS: "Seçili dışındakileri geçici gizler",
+  HIDEOBJECTS: "Seçili nesneleri geçici gizler", UNISOLATEOBJECTS: "Gizlenen nesneleri geri gösterir", COMMANDLINE: "Komut satırını gösterir", COMMANDLINEHIDE: "Komut satırını gizler (giriş imleç yanında)", PAGESETUP: "Layout kağıt boyutu", LIST: "Nesne bilgisi", ZOOM: "Görünümü yakınlaştırır", REGEN: "Ekranı yeniler", PAN: "Kaydırma bilgisi",
+  LAYER: "Katman panelini açar", LAYOFF: "Nesnenin katmanını kapatır", LAYFRZ: "Nesnenin katmanını dondurur", LAYLCK: "Katmanı kilitler",
+  LAYULK: "Katman kilidini açar", LAYMCUR: "Nesnenin katmanını geçerli yapar", LAYISO: "Yalnızca o katmanı gösterir",
+  LAYON: "Tüm katmanları açar", LAYTHW: "Tüm katmanları çözer", PROPERTIES: "Özellikler panelini açar", UNDO: "Geri al", REDO: "Yinele",
+  PURGE: "Kullanılmayanları temizler", SELECTALL: "Hepsini seçer", COPYCLIP: "Panoya kopyalar", CUTCLIP: "Panoya keser",
+  PASTECLIP: "Panodan yapıştırır", ORTHO: "Ortho aç/kapa", GRID: "Izgara aç/kapa", SNAP: "Snap aç/kapa", OSNAP: "Nesne snap ayarları",
+  PLOT: "Yazdırır", EXPORTPDF: "PDF'e aktarır", SETVAR: "Sistem değişkeni", HELP: "Bu kılavuzu açar", COMMANDS: "Komut listesini komut satırına yazar"
+};
+
+let ALL = [];
+
+function renderCommands(list) {
+  ALL = list;
+  filterCommands(document.getElementById('cmdsearch').value || '');
+}
+
+function filterCommands(q) {
+  const body = document.querySelector('#commands tbody');
+  if (!ALL.length) return;
+  q = q.trim().toLocaleLowerCase('tr');
+  const rows = ALL.filter(c => {
+    if (!q) return true;
+    const hay = [c.name, ...c.aliases, c.summary, TR[c.name] || ''].join(' ').toLocaleLowerCase('tr');
+    return hay.includes(q);
+  });
+  body.innerHTML = rows.map(c => {
+    const desc = TR[c.name] ? `${TR[c.name]} <span class="muted">— ${c.summary}</span>` : c.summary;
+    return `<tr><td><a class="run" href="cadmac://run/${encodeURIComponent(c.name)}">${c.name}</a></td>` +
+           `<td><code>${c.aliases.join(', ')}</code></td><td>${desc}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="muted">Sonuç yok.</td></tr>';
+}
+</script>
+</body>
+</html>

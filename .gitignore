@@ -1,0 +1,18 @@
+# Build output
+.build/
+build/
+*.app
+*.dmg
+
+# Local test corpus (not distributed — may contain third-party/client drawings)
+DWG-Test/
+
+# Editor / OS / tooling
+.DS_Store
+.vscode/
+.claude/
+*.xcodeproj
+*.xcworkspace
+
+# Swift PM
+Package.resolved
