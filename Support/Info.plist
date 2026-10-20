@@ -2,61 +2,129 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key><string>CadMac</string>
-	<key>CFBundleDisplayName</key><string>CadMac</string>
-	<key>CFBundleIdentifier</key><string>com.nikasert.cadmac</string>
-	<key>CFBundleExecutable</key><string>CadMac</string>
-	<key>CFBundlePackageType</key><string>APPL</string>
-	<key>CFBundleShortVersionString</key><string>0.1.0</string>
-	<key>CFBundleVersion</key><string>1</string>
-	<key>CFBundleIconFile</key><string>AppIcon</string>
-	<key>LSMinimumSystemVersion</key><string>14.0</string>
-	<key>NSHighResolutionCapable</key><true/>
-	<key>NSPrincipalClass</key><string>NSApplication</string>
-	<key>LSApplicationCategoryType</key><string>public.app-category.graphics-design</string>
+	<key>CFBundleDisplayName</key>
+	<string>CadMac</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleTypeName</key><string>DXF Drawing</string>
-			<key>CFBundleTypeRole</key><string>Editor</string>
-			<key>LSHandlerRank</key><string>Alternate</string>
-			<key>LSItemContentTypes</key><array><string>com.autodesk.dxf</string></array>
-			<key>NSDocumentClass</key><string>CadDocument</string>
+			<key>CFBundleTypeName</key>
+			<string>DXF Drawing</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.autodesk.dxf</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>CadDocument</string>
 		</dict>
 		<dict>
-			<key>CFBundleTypeName</key><string>DWG Drawing</string>
-			<key>CFBundleTypeRole</key><string>Editor</string>
-			<key>LSHandlerRank</key><string>Alternate</string>
-			<key>LSItemContentTypes</key><array><string>com.autodesk.dwg</string><string>com.autodesk.autocad.dwg</string></array>
-			<key>NSDocumentClass</key><string>CadDocument</string>
+			<key>CFBundleTypeName</key>
+			<string>DWG Drawing</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.autodesk.dwg</string>
+				<string>com.autodesk.autocad.dwg</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>CadDocument</string>
 		</dict>
 		<dict>
-			<key>CFBundleTypeName</key><string>DWG Template</string>
-			<key>CFBundleTypeRole</key><string>Viewer</string>
-			<key>LSHandlerRank</key><string>Alternate</string>
-			<key>LSItemContentTypes</key><array><string>com.autodesk.dwt</string><string>com.autodesk.autocad.dwt</string></array>
-			<key>NSDocumentClass</key><string>CadDocument</string>
+			<key>CFBundleTypeName</key>
+			<string>DWG Template</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.autodesk.dwt</string>
+				<string>com.autodesk.autocad.dwt</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>CadDocument</string>
 		</dict>
 	</array>
+	<key>CFBundleExecutable</key>
+	<string>CadMac</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.nikasert.cadmac</string>
+	<key>CFBundleName</key>
+	<string>CadMac</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.2.0</string>
+	<key>CFBundleVersion</key>
+	<string>2</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.graphics-design</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
-			<key>UTTypeIdentifier</key><string>com.autodesk.dxf</string>
-			<key>UTTypeDescription</key><string>DXF Drawing</string>
-			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
-			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>dxf</string></array></dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>DXF Drawing</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.autodesk.dxf</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>dxf</string>
+				</array>
+			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key><string>com.autodesk.dwg</string>
-			<key>UTTypeDescription</key><string>DWG Drawing</string>
-			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
-			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>dwg</string></array></dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>DWG Drawing</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.autodesk.dwg</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>dwg</string>
+				</array>
+			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key><string>com.autodesk.dwt</string>
-			<key>UTTypeDescription</key><string>DWG Template</string>
-			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
-			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>dwt</string></array></dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>DWG Template</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.autodesk.dwt</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>dwt</string>
+				</array>
+			</dict>
 		</dict>
 	</array>
 </dict>

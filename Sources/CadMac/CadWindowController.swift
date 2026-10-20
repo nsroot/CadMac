@@ -56,6 +56,7 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         buildLayout()
         buildToolbar()
         wire()
+        applyPreferences()
         window.center()
         if let b = blockEdit {
             window.title = "\(b.name) — Block Editor"
@@ -783,6 +784,8 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
             PrintSupport.exportPDF(drawing: controller.drawing, window: window, suggestedName: document?.displayName ?? "Drawing", paper: paperPlot())
         case .osnapSettings:
             showOsnapSettings()
+        case .textFont:
+            chooseTextFont(nil)
         case .publish:
             Publisher.run(self)
         }
@@ -812,6 +815,87 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
             self.controller.osnapModes = Set(boxes.filter { $0.1.state == .on }.map(\.0))
             self.controller.osnapOn = true
             self.refreshStatus()
+        }
+    }
+
+    // MARK: Preferences
+
+    /// The background color saved in Preferences, or nil to use the dark/light default.
+    static func savedBackground() -> CGColor? {
+        guard let data = UserDefaults.standard.data(forKey: "CanvasBackgroundColor"),
+              let color = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data)
+        else { return nil }
+        return color.usingColorSpace(.deviceRGB)?.cgColor
+    }
+
+    /// Applies the saved background color and default text font to this window.
+    func applyPreferences() {
+        canvas.style.customBackground = Self.savedBackground()
+        if let fam = UserDefaults.standard.string(forKey: "DefaultTextFont"), !fam.isEmpty {
+            Renderer.defaultFontFamily = fam
+        }
+        canvas.invalidateCache()
+    }
+
+    @objc func showSettings(_ sender: Any?) {
+        guard let window else { return }
+        let alert = NSAlert()
+        alert.messageText = Loc.t("Preferences")
+        alert.informativeText = Loc.t("Canvas background and default text font.")
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 8
+
+        let well = NSColorWell()
+        if let c = Self.savedBackground(), let ns = NSColor(cgColor: c) { well.color = ns }
+        else { well.color = NSColor(calibratedRed: 0.13, green: 0.157, blue: 0.188, alpha: 1) }
+        well.translatesAutoresizingMaskIntoConstraints = false
+        well.widthAnchor.constraint(equalToConstant: 64).isActive = true
+        well.heightAnchor.constraint(equalToConstant: 24).isActive = true
+
+        let popup = NSPopUpButton()
+        let families = NSFontManager.shared.availableFontFamilies.sorted()
+        popup.addItems(withTitles: families)
+        let current = UserDefaults.standard.string(forKey: "DefaultTextFont") ?? Renderer.defaultFontFamily
+        if families.contains(current) { popup.selectItem(withTitle: current) }
+
+        stack.addArrangedSubview(NSTextField(labelWithString: Loc.t("Background color")))
+        stack.addArrangedSubview(well)
+        stack.addArrangedSubview(NSTextField(labelWithString: Loc.t("Default text font")))
+        stack.addArrangedSubview(popup)
+        stack.frame = NSRect(x: 0, y: 0, width: 300, height: 150)
+        alert.accessoryView = stack
+        alert.addButton(withTitle: Loc.t("OK"))
+        alert.addButton(withTitle: Loc.t("Cancel"))
+        alert.beginSheetModal(for: window) { [weak self] resp in
+            guard resp == .alertFirstButtonReturn, let self else { return }
+            if let data = try? NSKeyedArchiver.archivedData(withRootObject: well.color, requiringSecureCoding: false) {
+                UserDefaults.standard.set(data, forKey: "CanvasBackgroundColor")
+            }
+            if let fam = popup.titleOfSelectedItem { UserDefaults.standard.set(fam, forKey: "DefaultTextFont") }
+            self.applyPreferences()
+        }
+    }
+
+    /// Picks the font used for new text (TEXT/MTEXT) in this drawing, from installed macOS fonts.
+    @objc func chooseTextFont(_ sender: Any?) {
+        guard let window else { return }
+        let alert = NSAlert()
+        alert.messageText = Loc.t("Text font")
+        alert.informativeText = Loc.t("Font for text you add next (installed macOS fonts).")
+        let popup = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 260, height: 26))
+        let families = NSFontManager.shared.availableFontFamilies.sorted()
+        popup.addItems(withTitles: families)
+        let cur = controller.drawing.settings.textFont
+        if families.contains(cur) { popup.selectItem(withTitle: cur) }
+        else if families.contains(Renderer.defaultFontFamily) { popup.selectItem(withTitle: Renderer.defaultFontFamily) }
+        alert.accessoryView = popup
+        alert.addButton(withTitle: Loc.t("OK"))
+        alert.addButton(withTitle: Loc.t("Cancel"))
+        alert.beginSheetModal(for: window) { [weak self] resp in
+            guard resp == .alertFirstButtonReturn, let self, let fam = popup.titleOfSelectedItem else { return }
+            self.controller.perform("Text font") { $0.settings.textFont = fam }
         }
     }
 

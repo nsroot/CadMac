@@ -115,6 +115,7 @@ enum ModalRequest {
     case print
     case exportPDF
     case osnapSettings
+    case textFont
     case publish
 }
 

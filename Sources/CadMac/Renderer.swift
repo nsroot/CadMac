@@ -37,8 +37,11 @@ struct RenderStyle {
     var showLineweights = false
     /// Print/plot mode: ACI 7 is black, all colors kept (or monochrome).
     var monochrome = false
+    /// Overrides the dark/light default when set from Preferences.
+    var customBackground: CGColor? = nil
     var background: CGColor {
-        darkBackground ? CGColor(red: 0.13, green: 0.157, blue: 0.188, alpha: 1) : .white
+        if let c = customBackground { return c }
+        return darkBackground ? CGColor(red: 0.13, green: 0.157, blue: 0.188, alpha: 1) : .white
     }
 }
 
@@ -306,13 +309,18 @@ struct Renderer {
 
     // MARK: Text
 
-    private static let fontCache = NSCache<NSNumber, CTFont>()
+    private static let fontCache = NSCache<NSString, CTFont>()
 
-    static func font(pixelHeight: CGFloat) -> CTFont {
-        // AutoCAD text height is cap height; Helvetica caps are ~0.72 em. Cache by quarter-pixel size.
-        let key = NSNumber(value: Int(pixelHeight * 4))
+    /// Default text font family, chosen in Preferences (any installed macOS font).
+    static var defaultFontFamily = "Helvetica"
+
+    static func font(pixelHeight: CGFloat, family: String = "") -> CTFont {
+        // AutoCAD text height is cap height; caps are ~0.72 em. Cache by family + quarter-pixel size.
+        let fam = family.isEmpty ? defaultFontFamily : family
+        let q = Int(pixelHeight * 4)
+        let key = "\(fam)|\(q)" as NSString
         if let f = fontCache.object(forKey: key) { return f }
-        let f = CTFontCreateWithName("Helvetica" as CFString, CGFloat(key.intValue) / 4 / 0.72, nil)
+        let f = CTFontCreateWithName(fam as CFString, CGFloat(q) / 4 / 0.72, nil)
         fontCache.setObject(f, forKey: key)
         return f
     }
@@ -352,7 +360,7 @@ struct Renderer {
             ctx.move(to: c[0]); ctx.addLine(to: c[1]); ctx.strokePath()
             return
         }
-        let font = Renderer.font(pixelHeight: px)
+        let font = Renderer.font(pixelHeight: px, family: t.font)
         let lines = layoutLines(t, font: font)
         let n = Double(lines.count)
         let h = t.height

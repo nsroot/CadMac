@@ -129,6 +129,8 @@ public struct DrawingSettings: Hashable, Codable {
     public var ltScale: Double = 1
     public var textHeight: Double = 2.5
     public var textStyle: String = "Standard"
+    /// Default font family for new text (empty = the app's default text font).
+    public var textFont: String = ""
     public var dimStyle = DimStyle()
     public var units: LengthUnits = .decimal
     /// Real-world unit of one drawing unit; new drawings are metric (mm) like acadiso.dwt.

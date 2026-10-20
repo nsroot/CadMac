@@ -780,7 +780,7 @@ final class TextCommand: CadCommand {
         if input == .text, let pos = position {
             // Each line is its own TEXT entity, stacked downward.
             let offset = Vec2(0, -height * textLineSpacing * Double(lineIndex)).rotated(by: rotation)
-            let e = make(.text(TextGeom(position: pos + offset, height: height, text: s, rotation: rotation, hAlign: hAlign, vAlign: vAlign, style: drawing.settings.textStyle)))
+            let e = make(.text(TextGeom(position: pos + offset, height: height, text: s, rotation: rotation, hAlign: hAlign, vAlign: vAlign, style: drawing.settings.textStyle, font: drawing.settings.textFont)))
             c.perform("Text") { $0.add(e) }
             lineIndex += 1
             askText()
@@ -813,12 +813,13 @@ final class MTextCommand: CadCommand {
         let width = abs(p.x - a.x)
         let height = drawing.settings.textHeight
         let st = drawing.settings.textStyle
+        let ft = drawing.settings.textFont
         ask("Enter text in the editor", .text)
         c.delegate?.runModal(.mtext(initial: "") { [weak self] text in
             guard let self else { return }
             if let text, !text.isEmpty {
                 let e = self.make(.text(TextGeom(position: topLeft, height: height, text: text, hAlign: .left, vAlign: .top,
-                                                 isMultiline: true, width: width, style: st)))
+                                                 isMultiline: true, width: width, style: st, font: ft)))
                 self.c.perform("MText") { $0.add(e) }
             }
             self.finish()

@@ -268,7 +268,7 @@ enum MenuBuilder {
         main.addItem(submenu(commandMenu("Format", [
             ("Layers…", "LAYER", ""), ("Make Object's Layer Current", "LAYMCUR", ""), ("Layer Off", "LAYOFF", ""), ("Layer Isolate", "LAYISO", ""),
             ("All Layers On", "LAYON", ""), ("Thaw All Layers", "LAYTHW", ""), ("Lock Layer", "LAYLCK", ""), ("Unlock Layer", "LAYULK", ""),
-            nil, ("Text Height…", "TEXTSIZE", ""), ("Linetype Scale…", "LTSCALE", ""), ("Grid Spacing…", "GRIDUNIT", ""), ("Snap Spacing…", "SNAPUNIT", ""),
+            nil, ("Text Height…", "TEXTSIZE", ""), ("Text Font…", "TEXTFONT", ""), ("Linetype Scale…", "LTSCALE", ""), ("Grid Spacing…", "GRIDUNIT", ""), ("Snap Spacing…", "SNAPUNIT", ""),
             nil, ("Purge Unused…", "PURGE", ""),
         ])))
         main.addItem(submenu(commandMenu("Tools", [
@@ -307,6 +307,8 @@ enum MenuBuilder {
     private static func appMenu() -> NSMenu {
         let m = NSMenu(title: "CadMac")
         m.addItem(withTitle: "About CadMac", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        m.addItem(.separator())
+        m.addItem(withTitle: "Settings…", action: #selector(CadWindowController.showSettings(_:)), keyEquivalent: ",")
         m.addItem(.separator())
         let services = NSMenuItem(title: "Services", action: nil, keyEquivalent: "")
         let sm = NSMenu(title: "Services")

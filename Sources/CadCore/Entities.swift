@@ -109,12 +109,14 @@ public struct TextGeom: Hashable, Codable {
     /// Wrap width for MTEXT; 0 = no wrapping.
     public var width: Double
     public var style: String
+    /// Font family for rendering (empty = the app's default text font). Chosen when adding text.
+    public var font: String
     public init(position: Vec2, height: Double, text: String, rotation: Double = 0,
                 hAlign: TextHAlign = .left, vAlign: TextVAlign = .baseline,
-                isMultiline: Bool = false, width: Double = 0, style: String = "Standard") {
+                isMultiline: Bool = false, width: Double = 0, style: String = "Standard", font: String = "") {
         self.position = position; self.height = height; self.text = text; self.rotation = rotation
         self.hAlign = hAlign; self.vAlign = vAlign; self.isMultiline = isMultiline; self.width = width
-        self.style = style
+        self.style = style; self.font = font
     }
     public var lines: [String] { text.components(separatedBy: "\n") }
 }

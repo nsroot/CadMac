@@ -28,7 +28,7 @@ struct DWGRDXFEmitter {
         self.objects = objects
         self.header = header
         self.r2004 = r2004
-        out.reserveCapacity(1 << 20)
+        out.reserveCapacity(max(1 << 20, objects.count * 256))
         for (h, o) in objects {
             switch o.data {
             case .layer(let l): layerNames[h] = l.name
@@ -58,9 +58,17 @@ struct DWGRDXFEmitter {
         out.append(contentsOf: s.utf8)
     }
 
-    mutating func pair(_ code: Int, _ value: String) {
-        raw(String(code))
+    /// Cached ASCII bytes for DXF group codes, so a numeric pair allocates no String for its code.
+    static let codeBytes: [[UInt8]] = (0...1200).map { Array(String($0).utf8) }
+
+    @inline(__always) mutating func emitCode(_ code: Int) {
+        if code >= 0 && code <= 1200 { out.append(contentsOf: Self.codeBytes[code]) }
+        else { out.append(contentsOf: String(code).utf8) }
         out.append(0x0A)
+    }
+
+    mutating func pair(_ code: Int, _ value: String) {
+        emitCode(code)
         if value.utf8.contains(where: { $0 == 0x0A || $0 == 0x0D }) {
             raw(value.replacingOccurrences(of: "\r\n", with: " ").replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "\r", with: " "))
         } else {
@@ -69,13 +77,24 @@ struct DWGRDXFEmitter {
         out.append(0x0A)
     }
 
+    // Numeric pairs never contain a newline, so they skip the scan and the per-pair code String.
     mutating func pair(_ code: Int, _ v: Double) {
-        pair(code, v.isFinite ? String(v) : "0")
+        emitCode(code)
+        out.append(contentsOf: (v.isFinite ? String(v) : "0").utf8)
+        out.append(0x0A)
     }
 
-    mutating func pair(_ code: Int, _ v: Int) { pair(code, String(v)) }
+    mutating func pair(_ code: Int, _ v: Int) {
+        emitCode(code)
+        out.append(contentsOf: String(v).utf8)
+        out.append(0x0A)
+    }
 
-    mutating func hex(_ code: Int, _ h: UInt64) { pair(code, String(h, radix: 16, uppercase: true)) }
+    mutating func hex(_ code: Int, _ h: UInt64) {
+        emitCode(code)
+        out.append(contentsOf: String(h, radix: 16, uppercase: true).utf8)
+        out.append(0x0A)
+    }
 
     mutating func p2(_ code: Int, _ p: DWGP2) { pair(code, p.x); pair(code + 10, p.y) }
     mutating func p3(_ code: Int, _ p: DWGP3) { pair(code, p.x); pair(code + 10, p.y); pair(code + 20, p.z) }

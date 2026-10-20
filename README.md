@@ -4,7 +4,7 @@
 
 > Native Swift · Metal-accelerated · DWG/DXF read & write · scriptable via MCP — a lightweight CAD / DWG viewer and editor alternative for Mac.
 
-![version](https://img.shields.io/badge/version-0.1.0-eb5e28) ![platform](https://img.shields.io/badge/macOS-14%2B-1e1c1a) ![license](https://img.shields.io/badge/license-GPL--3.0-40916c)
+![version](https://img.shields.io/badge/version-0.2.0-eb5e28) ![platform](https://img.shields.io/badge/macOS-14%2B-1e1c1a) ![license](https://img.shields.io/badge/license-GPL--3.0-40916c)
 
 ## Download
 
