@@ -1,10 +1,11 @@
 import AppKit
 
-/// UI language. Source strings are English; Turkish is applied at display time so command
-/// logic (which matches English prompts) is unaffected. Command names and option keywords
-/// (e.g. `[3P/2P/Diameter]`) stay English, like the shortcut letters they map to.
+/// UI language. Source strings are English; Turkish or Georgian is applied at display time so
+/// command logic (which matches English prompts) is unaffected. Option keywords
+/// (e.g. `[3P/2P/Diameter]`) stay English; command names also accept localized names
+/// (see CommandNames.swift).
 enum AppLanguage: String, CaseIterable {
-    case system, english, turkish
+    case system, english, turkish, georgian
 
     static var current: AppLanguage {
         get { AppLanguage(rawValue: UserDefaults.standard.string(forKey: "AppLanguage") ?? "") ?? .system }
@@ -13,53 +14,105 @@ enum AppLanguage: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .system: return Loc.isTurkish ? "Sistem dili" : "System Language"
+        case .system: return "System Language"
         case .english: return "English"
         case .turkish: return "Türkçe"
+        case .georgian: return "ქართული"
+        }
+    }
+
+    /// The UI language this choice resolves to.
+    var resolved: Loc.UILang {
+        switch self {
+        case .english: return .en
+        case .turkish: return .tr
+        case .georgian: return .ka
+        case .system:
+            let code = Locale.preferredLanguages.first ?? ""
+            return code.hasPrefix("tr") ? .tr : code.hasPrefix("ka") ? .ka : .en
         }
     }
 }
 
 @MainActor
 enum Loc {
-    /// Resolved once per launch (changing the language asks for a restart).
-    static let isTurkish: Bool = {
-        switch AppLanguage.current {
-        case .english: return false
-        case .turkish: return true
-        case .system: return Locale.preferredLanguages.first?.hasPrefix("tr") ?? false
+    enum UILang { case en, tr, ka }
+
+    /// Current UI language; `apply(_:)` switches it while the app runs.
+    nonisolated(unsafe) private(set) static var lang: UILang = AppLanguage.current.resolved
+    nonisolated static var isTurkish: Bool { lang == .tr }
+    nonisolated static var isLocalized: Bool { lang != .en }
+
+    /// Posted after the language changed so windows can refresh text they build in code.
+    static let didChange = Notification.Name("CadMacLanguageDidChange")
+
+    /// Picks a hard-coded string for the current language.
+    nonisolated static func pick(_ en: String, tr: String, ka: String) -> String {
+        switch lang { case .en: return en; case .tr: return tr; case .ka: return ka }
+    }
+
+    /// Switches the UI language immediately: menus, open windows and toolbars are re-translated.
+    static func apply(_ choice: AppLanguage) {
+        AppLanguage.current = choice
+        guard choice.resolved != lang else { return }
+        lang = choice.resolved
+        tables = Tables()
+        if let m = NSApp.mainMenu { localize(m) }
+        for w in NSApp.windows {
+            if let v = w.contentView { localize(v) }
+            for item in w.toolbar?.items ?? [] {
+                item.label = tracked(item, "label", item.label)
+                if let tip = item.toolTip { item.toolTip = tracked(item, "toolTip", tip) }
+            }
         }
-    }()
+        NotificationCenter.default.post(name: didChange, object: nil)
+    }
+
+    private static var activePairs: [(String, String)] { lang == .ka ? kaPairs : pairs }
+    private static var activeMessages: [(String, String)] { lang == .ka ? kaMessagePhrases : messagePhrases }
+    private static var activeSummaries: [String: String] { lang == .ka ? kaCommandSummaries : commandSummaries }
 
     /// Translates a UI string: exact match first, then known phrases outside `[...]` and quotes.
     static func t(_ s: String) -> String {
-        guard isTurkish, !s.isEmpty else { return s }
-        if let e = exact[s] { return e }
+        guard isLocalized, !s.isEmpty else { return s }
+        if let e = tables.exact[s] { return e }
         let trimmed = s.trimmingCharacters(in: .whitespaces)
-        if let e = exact[trimmed] { return s.replacingOccurrences(of: trimmed, with: e) }
-        if let e = exactUpper[s] { return e }
+        if let e = tables.exact[trimmed] { return s.replacingOccurrences(of: trimmed, with: e) }
+        if let e = tables.exactUpper[s] { return e }
         return phrases(s)
     }
 
     /// Command summary for autocomplete etc.
     static func summary(_ name: String, _ english: String) -> String {
-        guard isTurkish else { return english }
-        return commandSummaries[name] ?? t(english)
+        guard isLocalized else { return english }
+        return activeSummaries[name] ?? t(english)
     }
 
     // MARK: Phrase translation
 
-    private static let exact: [String: String] = Dictionary(pairs, uniquingKeysWith: { a, _ in a })
-    private static let exactUpper: [String: String] = Dictionary(pairs.map { ($0.0.uppercased(), $0.1.uppercased(with: Locale(identifier: "tr"))) }, uniquingKeysWith: { a, _ in a })
+    private struct Phrase { let en: String; let to: String; let regex: NSRegularExpression }
 
-    private struct Phrase { let en: String; let tr: String; let regex: NSRegularExpression }
+    /// Lookup tables for the current language (rebuilt on a language change).
+    private struct Tables {
+        let exact: [String: String]
+        let exactUpper: [String: String]
+        let compiled: [Phrase]
 
-    private static let compiled: [Phrase] = (pairs + messagePhrases)
-        .sorted { $0.0.count > $1.0.count }
-        .compactMap { en, tr in
-            let pattern = "(?<![\\p{L}\\p{N}])" + NSRegularExpression.escapedPattern(for: en) + "(?![\\p{L}])"
-            return (try? NSRegularExpression(pattern: pattern)).map { Phrase(en: en, tr: tr, regex: $0) }
+        @MainActor init() {
+            exact = Dictionary(Loc.activePairs, uniquingKeysWith: { a, _ in a })
+            // Georgian has no letter case in ordinary text (uppercasing would switch to Mtavruli), so it stays as is.
+            let ka = Loc.lang == .ka
+            exactUpper = Dictionary(Loc.activePairs.map { ($0.0.uppercased(), ka ? $0.1 : $0.1.uppercased(with: Locale(identifier: "tr"))) }, uniquingKeysWith: { a, _ in a })
+            compiled = (Loc.isLocalized ? Loc.activePairs + Loc.activeMessages : [])
+                .sorted { $0.0.count > $1.0.count }
+                .compactMap { en, to in
+                    let pattern = "(?<![\\p{L}\\p{N}])" + NSRegularExpression.escapedPattern(for: en) + "(?![\\p{L}])"
+                    return (try? NSRegularExpression(pattern: pattern)).map { Phrase(en: en, to: to, regex: $0) }
+                }
         }
+    }
+
+    private static var tables = Tables()
 
     private static func phrases(_ s: String) -> String {
         // Translate only outside [keywords] and "quoted names".
@@ -88,51 +141,69 @@ enum Loc {
         guard run.contains(where: { $0.isLetter }) else { return run }
         var s = run
         let lower = run.lowercased()
-        for p in compiled where lower.contains(p.en.lowercased()) {
+        for p in tables.compiled where lower.contains(p.en.lowercased()) {
             let range = NSRange(s.startIndex..., in: s)
-            s = p.regex.stringByReplacingMatches(in: s, range: range, withTemplate: NSRegularExpression.escapedTemplate(for: p.tr))
+            s = p.regex.stringByReplacingMatches(in: s, range: range, withTemplate: NSRegularExpression.escapedTemplate(for: p.to))
         }
         return s
     }
 
     // MARK: UI walking
 
+    private static let originalsKey = UnsafeRawPointer(bitPattern: 0x4C6F_6341)!
+
+    /// Translates a UI property of `obj`, remembering its English original so it can be
+    /// translated again into another language. A value changed by code since the last
+    /// translation is taken as the new original.
+    private static func tracked(_ obj: AnyObject, _ key: String, _ current: String, _ translate: ((String) -> String)? = nil) -> String {
+        var map = objc_getAssociatedObject(obj, originalsKey) as? [String: [String]] ?? [:]
+        var english = current
+        if let e = map[key], e.count == 2, e[1] == current { english = e[0] }
+        let out = translate?(english) ?? t(english)
+        map[key] = [english, out]
+        objc_setAssociatedObject(obj, originalsKey, map, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return out
+    }
+
+    /// Set once the UI has been translated, so switching back to English walks the views too.
+    private static var touched = false
+
     /// Translates static labels, buttons, tooltips and table headers of a view tree.
     static func localize(_ view: NSView) {
-        guard isTurkish else { return }
+        guard isLocalized || touched else { return }
+        touched = true
         if let tf = view as? NSTextField {
-            if !tf.isEditable && !tf.isBezeled { tf.stringValue = t(tf.stringValue) }
-            if let ph = tf.placeholderString { tf.placeholderString = t(ph) }
+            if !tf.isEditable && !tf.isBezeled { tf.stringValue = tracked(tf, "string", tf.stringValue) }
+            if let ph = tf.placeholderString { tf.placeholderString = tracked(tf, "placeholder", ph) }
         } else if let b = view as? NSButton, !(b is TabButton), !(b is NSPopUpButton) {
             // Icon-only buttons keep an invisible default title; leave them alone.
-            if !b.title.isEmpty, b.image == nil || b.imagePosition != .imageOnly && b.image == nil { b.title = t(b.title) }
+            if !b.title.isEmpty, b.image == nil || b.imagePosition != .imageOnly && b.image == nil { b.title = tracked(b, "title", b.title) }
         } else if let seg = view as? NSSegmentedControl {
-            for i in 0..<seg.segmentCount { if let l = seg.label(forSegment: i) { seg.setLabel(t(l), forSegment: i) } }
+            for i in 0..<seg.segmentCount { if let l = seg.label(forSegment: i) { seg.setLabel(tracked(seg, "seg\(i)", l), forSegment: i) } }
         } else if let table = view as? NSTableView {
-            for c in table.tableColumns { c.title = t(c.title) }
+            for c in table.tableColumns { c.title = tracked(c, "title", c.title) }
         }
-        if let tip = view.toolTip { view.toolTip = t(tip) }
+        if let tip = view.toolTip { view.toolTip = tracked(view, "toolTip", tip) }
         for sub in view.subviews { localize(sub) }
     }
 
     static func localize(_ menu: NSMenu) {
-        guard isTurkish else { return }
-        menu.title = t(menu.title)
+        guard isLocalized || touched else { return }
+        touched = true
+        menu.title = tracked(menu, "title", menu.title)
         for item in menu.items {
             // Command menu items are "Title    ALIAS".
-            if let r = item.title.range(of: "    ") {
-                item.title = t(String(item.title[..<r.lowerBound])) + item.title[r.lowerBound...]
-            } else {
-                item.title = t(item.title)
+            item.title = tracked(item, "title", item.title) { s in
+                guard let r = s.range(of: "    ") else { return t(s) }
+                return t(String(s[..<r.lowerBound])) + s[r.lowerBound...]
             }
-            if let tip = item.toolTip { item.toolTip = t(tip) }
+            if let tip = item.toolTip { item.toolTip = tracked(item, "toolTip", tip) }
             if let sub = item.submenu { localize(sub) }
         }
     }
 
     /// Localizes alerts, sheets and new windows as they appear.
     static func installWindowObserver() {
-        guard isTurkish else { return }
         NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { n in
             MainActor.assumeIsolated {
                 guard let w = n.object as? NSWindow, let v = w.contentView else { return }
@@ -147,7 +218,7 @@ enum Loc {
     static let pairs: [(String, String)] = [
         // Menus
         ("About CadMac", "CadMac Hakkında"), ("Services", "Hizmetler"), ("Hide CadMac", "CadMac'i Gizle"), ("Hide Others", "Diğerlerini Gizle"),
-        ("Show All", "Tümünü Göster"), ("Quit CadMac", "CadMac'ten Çık"), ("Language", "Dil"),
+        ("Show All", "Tümünü Göster"), ("Quit CadMac", "CadMac'ten Çık"), ("Language", "Dil"), ("System Language", "Sistem dili"),
         ("File", "Dosya"), ("New", "Yeni"), ("Open…", "Aç…"), ("Open Recent", "Son Kullanılanlar"), ("Clear Menu", "Menüyü Temizle"),
         ("Close", "Kapat"), ("Save", "Kaydet"), ("Save As…", "Farklı Kaydet…"), ("Revert to Saved", "Kaydedilene Döndür"),
         ("Export as PDF…", "PDF Olarak Dışa Aktar…"), ("Publish All Layouts to PDF…", "Tüm Layout'ları PDF'e Yayınla…"),
@@ -163,6 +234,9 @@ enum Loc {
         ("Hide Inspector", "Sağ Paneli Gizle"), ("Show Inspector", "Sağ Paneli Göster"),
         ("Hide Command Line", "Komut Satırını Gizle"), ("Show Command Line", "Komut Satırını Göster"), ("Toggle Command Line", "Komut Satırı"),
         ("Dark Background", "Koyu Arka Plan"), ("Enter Full Screen", "Tam Ekrana Geç"),
+        ("Crosshair", "Artı İmleç"), ("Show Crosshair Lines", "İmleç Çizgilerini Göster"), ("Solid", "Düz"), ("Dashed", "Kesikli"),
+        ("Dotted", "Noktalı"), ("Crosshair Size…", "İmleç Boyutu…"), ("Enter crosshair option", "İmleç seçeneğini girin"),
+        ("Crosshair size in percent of the screen (100 = full)", "İmleç boyutu, ekranın yüzdesi olarak (100 = tam)"),
         ("Draw", "Çizim"), ("Modify", "Değiştir"), ("Dimension", "Ölçü"), ("Format", "Biçim"), ("Tools", "Araçlar"),
         ("Window", "Pencere"), ("Help", "Yardım"), ("Minimize", "Küçült"), ("Zoom", "Yakınlaştır"), ("Bring All to Front", "Tümünü Öne Getir"),
         ("Command List", "Komut Listesi"),
@@ -412,6 +486,7 @@ enum Loc {
         "DRAWORDER": "Çizim sırası", "GROUP": "Grup oluştur", "UNGROUP": "Grubu çöz", "OVERKILL": "Çift nesneleri temizle",
         "COUNT": "Blokları say", "FIND": "Yazı bul/değiştir", "ATTDEF": "Attribute tanımı", "ATTEDIT": "Attribute düzenle",
         "ISOLATEOBJECTS": "Seçili dışındakileri gizle", "HIDEOBJECTS": "Seçilileri gizle", "UNISOLATEOBJECTS": "Gizlenenleri göster",
+        "CROSSHAIR": "Artı imleç çizgileri (aç/kapa, düz/kesikli/noktalı, boyut)", "TEXTFONT": "Yazı fontu", "CHAT": "Claude sohbet",
         "COMMANDLINE": "Komut satırını göster", "COMMANDLINEHIDE": "Komut satırını gizle", "SAVETIME": "Otomatik kaydetme aralığı",
     ]
 }

@@ -57,6 +57,9 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         buildToolbar()
         wire()
         applyPreferences()
+        NotificationCenter.default.addObserver(forName: Loc.didChange, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.languageDidChange() }
+        }
         window.center()
         if let b = blockEdit {
             window.title = "\(b.name) — Block Editor"
@@ -576,8 +579,9 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         layoutTabs.onMove = { [weak self] name, dir in self?.moveLayout(name, by: dir) }
         layoutTabs.reload(layouts: controller.drawing.layouts, active: controller.drawing.activeLayout)
 
-        commandLine.echo(Loc.isTurkish ? "CadMac — macOS için 2B çizim. Bir komut yazın (ör. L, C, REC, TR) veya yardım için F1."
-                                      : "CadMac — native 2D drafting for macOS. Type a command (e.g. L, C, REC, TR) or HELP.")
+        commandLine.echo(Loc.pick("CadMac — native 2D drafting for macOS. Type a command (e.g. L, C, REC, TR) or HELP.",
+                                  tr: "CadMac — macOS için 2B çizim. Bir komut yazın (ör. L, C, REC, TR veya ÇİZGİ, DAİRE) veya yardım için F1.",
+                                  ka: "CadMac — 2D ხაზვა macOS-ისთვის. შეიყვანეთ ბრძანება (მაგ. L, C, REC, TR ან ხაზი, წრე) ან F1 დახმარებისთვის."))
         if let v = window?.contentView { Loc.localize(v) }
         promptDidChange("Command:")
         refreshStatus()
@@ -587,6 +591,16 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
 
     override func windowDidLoad() {
         super.windowDidLoad()
+    }
+
+    /// Re-translates text this window builds in code after a live language switch.
+    private func languageDidChange() {
+        properties.reload()
+        layersPanel.reload()
+        layoutTabs.reload(layouts: controller.drawing.layouts, active: controller.drawing.activeLayout)
+        refreshStatus()
+        controller.promptChanged()
+        canvas.refreshOverlay()
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
@@ -968,6 +982,16 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         canvas.style.darkBackground.toggle()
         canvas.invalidateCache()
     }
+    @objc func toggleCrosshair(_ sender: Any?) {
+        CrosshairPrefs.visible.toggle()
+        canvas.refreshOverlay()
+    }
+    @objc func setCrosshairStyle(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let st = CrosshairStyle(rawValue: raw) else { return }
+        CrosshairPrefs.style = st
+        CrosshairPrefs.visible = true
+        canvas.refreshOverlay()
+    }
     @objc func printDrawing(_ sender: Any?) { runModal(.print) }
     @objc func exportPDF(_ sender: Any?) { runModal(.exportPDF) }
     @objc func publishLayouts(_ sender: Any?) { runModal(.publish) }
@@ -988,6 +1012,8 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         case #selector(toggleOtrack(_:)): item.state = controller.otrackOn ? .on : .off
         case #selector(toggleDyn(_:)): item.state = controller.dynInputOn ? .on : .off
         case #selector(toggleBackground(_:)): item.state = canvas.style.darkBackground ? .on : .off
+        case #selector(toggleCrosshair(_:)): item.state = CrosshairPrefs.visible ? .on : .off
+        case #selector(setCrosshairStyle(_:)): item.state = (item.representedObject as? String) == CrosshairPrefs.style.rawValue ? .on : .off
         case #selector(toggleToolSets(_:)): item.title = Loc.t(palette.isHidden ? "Show Tool Sets" : "Hide Tool Sets")
         case #selector(toggleInspector(_:)): item.title = Loc.t(rightPanel.isHidden ? "Show Inspector" : "Hide Inspector")
         case #selector(toggleCommandLine(_:)):

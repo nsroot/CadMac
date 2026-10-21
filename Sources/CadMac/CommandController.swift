@@ -274,7 +274,8 @@ final class CommandController {
     // MARK: Command lifecycle
 
     func run(_ commandName: String) {
-        var name = commandName.trimmingCharacters(in: .whitespaces).uppercased()
+        // Not uppercased here: localized names (e.g. Georgian) are matched in CommandRegistry.lookup.
+        var name = commandName.trimmingCharacters(in: .whitespaces)
         if name.hasPrefix("_") { name.removeFirst() }
         if name.hasPrefix(".") { name.removeFirst() }
         if active != nil {
@@ -338,6 +339,9 @@ final class CommandController {
             echoInput(text)
         }
         if let k = matchKeyword(text, cmd.keywords) { cmd.keyword(k); return }
+        // Option keys typed with a Georgian/Russian keyboard layout ("დ" → D). Not for free text.
+        if !(cmd.input == .text && cmd.allowsSpaces), let latin = CommandNames.fromKeyboardLayout(text),
+           let k = matchKeyword(latin, cmd.keywords) { cmd.keyword(k); return }
         if cmd.input == .point || cmd.input == .entity {
             if let kind = snapOverrideKeyword(text) {
                 snapOverride = kind

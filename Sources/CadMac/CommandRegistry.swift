@@ -96,6 +96,7 @@ enum CommandRegistry {
             action("PAN", ["P"], "Pan: use two-finger scroll, middle mouse or Space+drag", keep: true) { $0.message("Pan with two-finger scroll or middle mouse drag. Zoom with pinch or mouse wheel.") },
             // Layers
             action("LAYER", ["LA"], "Opens the Layer Properties panel", keep: true) { $0.delegate?.showPanel("layers") },
+            info("CROSSHAIR", ["CURSORSIZE", "CURSOR"], "Turns the crosshair lines on/off and sets their style (solid, dashed, dotted) and size", { CrosshairCommand($0, name: $1) }),
             action("TEXTFONT", ["TF"], "Choose the font for new text", keep: true) { $0.delegate?.runModal(.textFont) },
             action("CHAT", ["CLAUDE", "ASK"], "Open the Claude chat panel", keep: true) { $0.delegate?.runModal(.chat) },
             info("LAYOFF", [], "Turns off the layer of a selected object", { LayerPickCommand($0, name: $1, action: .off) }),
@@ -132,8 +133,9 @@ enum CommandRegistry {
             action("HELP", ["?", "F1"], "Opens the user guide", keep: true) { _ in HelpWindowController.shared.show() },
             action("COMMANDS", [], "Lists available commands in the command line", keep: true) { c in
                 for i in CommandRegistry.all {
-                    let alias = i.aliases.isEmpty ? "" : " (\(i.aliases.joined(separator: ", ")))"
-                    c.message("\(i.name)\(alias) — \(i.summary)")
+                    let names = i.aliases + CommandNames.names(for: i.name)
+                    let alias = names.isEmpty ? "" : " (\(names.joined(separator: ", ")))"
+                    c.message("\(i.name)\(alias) — \(Loc.summary(i.name, i.summary))")
                 }
             },
         ] + AttributeCommands.all + ToolCommands.all + SetvarCommand.variables.keys.sorted().map { v in
@@ -151,8 +153,14 @@ enum CommandRegistry {
     }
 
     static func lookup(_ name: String) -> CommandInfo? {
-        let n = name.uppercased()
-        return all.first { $0.name == n } ?? all.first { $0.aliases.contains(n) }
+        if let i = lookupLatin(name.uppercased()) { return i }
+        if let cmd = CommandNames.index[CommandNames.normalize(name)], let i = lookupLatin(cmd) { return i }
+        if let latin = CommandNames.fromKeyboardLayout(name) { return lookupLatin(latin.uppercased()) }
+        return nil
+    }
+
+    private static func lookupLatin(_ n: String) -> CommandInfo? {
+        all.first { $0.name == n } ?? all.first { $0.aliases.contains(n) }
     }
 
     static func make(_ name: String, _ c: CommandController) -> CadCommand? {
@@ -173,10 +181,15 @@ enum CommandRegistry {
 
     /// Autocomplete candidates for a partial command name.
     static func suggestions(for prefix: String, limit: Int = 8) -> [CommandInfo] {
-        let p = prefix.uppercased()
-        guard !p.isEmpty else { return [] }
+        guard !prefix.isEmpty else { return [] }
+        let p = (CommandNames.fromKeyboardLayout(prefix) ?? prefix).uppercased()
         let exactAlias = all.filter { $0.aliases.contains(p) }
         let starts = all.filter { info in info.name.hasPrefix(p) && !exactAlias.contains(where: { $0.name == info.name }) }
-        return Array((exactAlias + starts).prefix(limit))
+        // Localized names ("çiz" → LINE, "ხაზ" → LINE).
+        let np = CommandNames.normalize(prefix)
+        let localized = CommandNames.index.filter { $0.key.hasPrefix(np) }.sorted { $0.key.count < $1.key.count }
+            .compactMap { lookupLatin($0.value) }
+        var seen = Set<String>()
+        return Array((exactAlias + starts + localized).filter { seen.insert($0.name).inserted }.prefix(limit))
     }
 }

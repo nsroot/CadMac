@@ -597,16 +597,22 @@ final class CanvasView: NSView {
         let color = style.darkBackground && !controller.drawing.isPaperSpace ? CGColor(gray: 1, alpha: 0.9) : CGColor(gray: 0, alpha: 0.9)
         ctx.setStrokeColor(color)
         ctx.setLineWidth(1)
-        let len: CGFloat = 4000
         let x = p.x.rounded() + 0.5, y = p.y.rounded() + 0.5
         let box: CGFloat = 5
         let showBox = controller.inputKind != .point && controller.gripDrag == nil
         let gap: CGFloat = showBox ? box : 0
-        ctx.move(to: CGPoint(x: x - len, y: y)); ctx.addLine(to: CGPoint(x: x - gap, y: y))
-        ctx.move(to: CGPoint(x: x + gap, y: y)); ctx.addLine(to: CGPoint(x: x + len, y: y))
-        ctx.move(to: CGPoint(x: x, y: y - len)); ctx.addLine(to: CGPoint(x: x, y: y - gap))
-        ctx.move(to: CGPoint(x: x, y: y + gap)); ctx.addLine(to: CGPoint(x: x, y: y + len))
-        ctx.strokePath()
+        // Off: a small cross so the (hidden system) cursor position stays visible.
+        let size = CrosshairPrefs.size
+        let len: CGFloat = !CrosshairPrefs.visible ? gap + 8
+            : size >= 100 ? 4000 : max(gap + 8, max(bounds.width, bounds.height) * size / 200)
+        // Each arm starts at the cursor so dashes stay anchored to it.
+        ctx.setLineDash(phase: 0, lengths: CrosshairPrefs.visible ? CrosshairPrefs.style.dash : [])
+        for (dx, dy) in [(-1.0, 0.0), (1, 0), (0, -1), (0, 1)] as [(CGFloat, CGFloat)] {
+            ctx.move(to: CGPoint(x: x + dx * gap, y: y + dy * gap))
+            ctx.addLine(to: CGPoint(x: x + dx * len, y: y + dy * len))
+            ctx.strokePath()
+        }
+        ctx.setLineDash(phase: 0, lengths: [])
         if showBox { ctx.stroke(CGRect(x: x - box, y: y - box, width: box * 2, height: box * 2)) }
     }
 

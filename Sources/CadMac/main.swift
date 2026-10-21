@@ -118,6 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 wc.switchSpace(n.isEmpty || n == "Model" ? nil : n)
                 continue
             }
+            if step.hasPrefix("!lang "), let l = AppLanguage(rawValue: String(step.dropFirst(6))) { Loc.apply(l); continue }
             if step == "!cmdline off" { wc.setCommandLine(visible: false); continue }
             if step == "!cmdline on" { wc.setCommandLine(visible: true); continue }
             if step.hasPrefix("!type ") { wc.canvas.dynamicText = String(step.dropFirst(6)); continue }
@@ -228,11 +229,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func setLanguage(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String, let l = AppLanguage(rawValue: raw), l != AppLanguage.current else { return }
-        AppLanguage.current = l
         for i in sender.menu?.items ?? [] { i.state = (i.representedObject as? String) == raw ? .on : .off }
-        let alert = NSAlert()
-        alert.messageText = Loc.isTurkish ? "Dil değişikliği CadMac yeniden başlatılınca uygulanır." : "The language change takes effect after restarting CadMac."
-        alert.runModal()
+        Loc.apply(l)
     }
     @objc func showHelpSection(_ sender: NSMenuItem) { HelpWindowController.shared.show(anchor: sender.representedObject as? String) }
 }
@@ -413,6 +411,19 @@ enum MenuBuilder {
         cl9.allowsKeyEquivalentWhenHidden = true
         m.addItem(.separator())
         m.addItem(withTitle: "Dark Background", action: #selector(CadWindowController.toggleBackground(_:)), keyEquivalent: "")
+        let ch = NSMenuItem(title: "Crosshair", action: nil, keyEquivalent: "")
+        let chm = NSMenu(title: "Crosshair")
+        chm.addItem(withTitle: "Show Crosshair Lines", action: #selector(CadWindowController.toggleCrosshair(_:)), keyEquivalent: "")
+        chm.addItem(.separator())
+        for st in CrosshairStyle.allCases {
+            let i = chm.addItem(withTitle: st.title, action: #selector(CadWindowController.setCrosshairStyle(_:)), keyEquivalent: "")
+            i.representedObject = st.rawValue
+        }
+        chm.addItem(.separator())
+        let size = chm.addItem(withTitle: "Crosshair Size…", action: #selector(CadWindowController.runCommand(_:)), keyEquivalent: "")
+        size.representedObject = "CROSSHAIR"
+        ch.submenu = chm
+        m.addItem(ch)
         let fs = m.addItem(withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         fs.keyEquivalentModifierMask = [.command, .control]
         return m
