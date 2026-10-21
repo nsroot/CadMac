@@ -152,10 +152,11 @@ final class ClaudeChatWindow: NSWindowController, NSTextFieldDelegate {
 
     init() {
         let win = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
-                          styleMask: [.titled, .closable, .resizable, .utilityWindow, .nonactivatingPanel],
+                          styleMask: [.titled, .closable, .resizable, .utilityWindow],
                           backing: .buffered, defer: false)
         win.title = "Claude"
         win.isFloatingPanel = true
+        win.becomesKeyOnlyIfNeeded = false
         win.hidesOnDeactivate = false
         super.init(window: win)
         build()
@@ -176,6 +177,8 @@ final class ClaudeChatWindow: NSWindowController, NSTextFieldDelegate {
         input.placeholderString = "Ask Claude to draw or edit…"
         input.font = NSFont.systemFont(ofSize: 13)
         input.delegate = self
+        input.target = self
+        input.action = #selector(sendTapped)   // Enter in the field sends
         input.translatesAutoresizingMaskIntoConstraints = false
         let send = NSButton(title: "Send", target: self, action: #selector(sendTapped))
         send.keyEquivalent = "\r"
@@ -205,7 +208,11 @@ final class ClaudeChatWindow: NSWindowController, NSTextFieldDelegate {
     func toggle() {
         guard let window else { return }
         if window.isVisible { window.orderOut(nil) }
-        else { window.makeKeyAndOrderFront(nil); window.center() }
+        else {
+            window.center()
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(input)
+        }
     }
 
     @objc private func sendTapped() { submit() }

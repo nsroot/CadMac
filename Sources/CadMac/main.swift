@@ -4,6 +4,8 @@ import CadCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
+        // Show the remaining system tooltips (toolbar, status bar, ...) after 0.3 s instead of ~1.5 s.
+        UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 300])
         let menu = MenuBuilder.build()
         Loc.localize(menu)
         NSApp.mainMenu = menu

@@ -131,6 +131,96 @@ enum ToolIcons {
     }
 }
 
+/// Small floating label shown immediately while the mouse is over a palette icon
+/// (system tooltips only appear after a long delay).
+@MainActor
+final class HoverTip {
+    static let shared = HoverTip()
+    private var panel: NSPanel?
+    private var label: NSTextField?
+
+    /// "Line (L)" -> "Çizgi (L)" in Turkish; the command alias stays as is.
+    static func text(for tip: String) -> String {
+        if let r = tip.range(of: " (", options: .backwards) {
+            return Loc.t(String(tip[..<r.lowerBound])) + tip[r.lowerBound...]
+        }
+        return Loc.t(tip)
+    }
+
+    func show(_ text: String, beside view: NSView) {
+        guard let win = view.window else { return }
+        if panel == nil {
+            let l = NSTextField(labelWithString: "")
+            l.font = .systemFont(ofSize: 12, weight: .medium)
+            l.textColor = .white
+            l.translatesAutoresizingMaskIntoConstraints = false
+            let bg = NSView()
+            bg.wantsLayer = true
+            bg.layer?.backgroundColor = NSColor(white: 0.08, alpha: 0.92).cgColor
+            bg.layer?.cornerRadius = 5
+            bg.addSubview(l)
+            NSLayoutConstraint.activate([
+                l.leadingAnchor.constraint(equalTo: bg.leadingAnchor, constant: 8),
+                l.centerYAnchor.constraint(equalTo: bg.centerYAnchor),
+            ])
+            let p = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+            p.isOpaque = false
+            p.backgroundColor = .clear
+            p.hasShadow = true
+            p.level = .floating
+            p.ignoresMouseEvents = true
+            p.hidesOnDeactivate = true
+            p.contentView = bg
+            panel = p
+            label = l
+        }
+        guard let panel, let label else { return }
+        label.stringValue = text
+        let ts = label.fittingSize
+        let size = NSSize(width: ceil(ts.width) + 16, height: ceil(ts.height) + 8)
+        let r = win.convertToScreen(view.convert(view.bounds, to: nil))
+        panel.setFrame(NSRect(x: r.maxX + 6, y: r.midY - size.height / 2, width: size.width, height: size.height), display: true)
+        panel.orderFront(nil)
+    }
+
+    func hide() { panel?.orderOut(nil) }
+}
+
+/// Icon button that shows its name via `HoverTip` as soon as the mouse enters it.
+@MainActor
+final class HoverTipButton: NSButton {
+    var hoverText: String?
+    private var area: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let area { removeTrackingArea(area) }
+        let a = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeInActiveApp, .inVisibleRect], owner: self, userInfo: nil)
+        addTrackingArea(a)
+        area = a
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        if let hoverText { HoverTip.shared.show(hoverText, beside: self) }
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        HoverTip.shared.hide()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        HoverTip.shared.hide()
+        super.mouseDown(with: event)
+    }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        if newWindow == nil { HoverTip.shared.hide() }
+        super.viewWillMove(toWindow: newWindow)
+    }
+}
+
 /// Left "Tool Sets" palette with grouped icon buttons.
 @MainActor
 final class ToolPaletteView: NSView {
@@ -170,12 +260,14 @@ final class ToolPaletteView: NSView {
             grid.columnSpacing = 2
             var row: [NSView] = []
             for (cmd, tip) in tools {
-                let b = NSButton(image: ToolIcons.icon(cmd), target: self, action: #selector(click(_:)))
+                let b = HoverTipButton(image: ToolIcons.icon(cmd), target: self, action: #selector(click(_:)))
                 b.bezelStyle = .regularSquare
                 b.isBordered = false
                 b.imageScaling = .scaleNone
                 b.contentTintColor = NSColor(white: 0.9, alpha: 1)
-                b.toolTip = tip
+                // Instant hover label instead of the slow system tooltip (avoids showing both).
+                b.hoverText = HoverTip.text(for: tip)
+                b.setAccessibilityLabel(b.hoverText)
                 b.identifier = NSUserInterfaceItemIdentifier(cmd)
                 b.wantsLayer = true
                 b.layer?.cornerRadius = 4
