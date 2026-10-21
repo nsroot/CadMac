@@ -274,7 +274,7 @@ enum MenuBuilder {
         main.addItem(submenu(commandMenu("Tools", [
             ("Distance", "DIST", ""), ("Area", "AREA", ""), ("Point Coordinates", "ID", ""), ("List", "LIST", ""),
             nil, ("Object Snap Settings…", "OSNAP", ""), ("Set Variable…", "SETVAR", ""),
-            nil, ("Command List", "COMMANDS", ""),
+            nil, ("Claude Chat…", "CHAT", ""), ("Command List", "COMMANDS", ""),
         ])))
         let window = NSMenu(title: "Window")
         window.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")

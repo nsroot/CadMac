@@ -97,6 +97,7 @@ enum CommandRegistry {
             // Layers
             action("LAYER", ["LA"], "Opens the Layer Properties panel", keep: true) { $0.delegate?.showPanel("layers") },
             action("TEXTFONT", ["TF"], "Choose the font for new text", keep: true) { $0.delegate?.runModal(.textFont) },
+            action("CHAT", ["CLAUDE", "ASK"], "Open the Claude chat panel", keep: true) { $0.delegate?.runModal(.chat) },
             info("LAYOFF", [], "Turns off the layer of a selected object", { LayerPickCommand($0, name: $1, action: .off) }),
             info("LAYFRZ", [], "Freezes the layer of a selected object", { LayerPickCommand($0, name: $1, action: .freeze) }),
             info("LAYLCK", [], "Locks the layer of a selected object", { LayerPickCommand($0, name: $1, action: .lock) }),

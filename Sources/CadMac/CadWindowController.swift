@@ -786,6 +786,8 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
             showOsnapSettings()
         case .textFont:
             chooseTextFont(nil)
+        case .chat:
+            ClaudeChatWindow.shared.toggle()
         case .publish:
             Publisher.run(self)
         }
@@ -864,7 +866,21 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
         stack.addArrangedSubview(well)
         stack.addArrangedSubview(NSTextField(labelWithString: Loc.t("Default text font")))
         stack.addArrangedSubview(popup)
-        stack.frame = NSRect(x: 0, y: 0, width: 300, height: 150)
+
+        let keyField = NSSecureTextField()
+        keyField.stringValue = ChatPrefs.apiKey
+        keyField.placeholderString = "sk-ant-…"
+        keyField.translatesAutoresizingMaskIntoConstraints = false
+        keyField.widthAnchor.constraint(equalToConstant: 280).isActive = true
+        let modelPopup = NSPopUpButton()
+        let models = ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"]
+        modelPopup.addItems(withTitles: models)
+        if models.contains(ChatPrefs.model) { modelPopup.selectItem(withTitle: ChatPrefs.model) }
+        stack.addArrangedSubview(NSTextField(labelWithString: Loc.t("Anthropic API key (for Claude Chat)")))
+        stack.addArrangedSubview(keyField)
+        stack.addArrangedSubview(NSTextField(labelWithString: Loc.t("Claude model")))
+        stack.addArrangedSubview(modelPopup)
+        stack.frame = NSRect(x: 0, y: 0, width: 300, height: 260)
         alert.accessoryView = stack
         alert.addButton(withTitle: Loc.t("OK"))
         alert.addButton(withTitle: Loc.t("Cancel"))
@@ -874,6 +890,8 @@ final class CadWindowController: NSWindowController, NSWindowDelegate, CommandCo
                 UserDefaults.standard.set(data, forKey: "CanvasBackgroundColor")
             }
             if let fam = popup.titleOfSelectedItem { UserDefaults.standard.set(fam, forKey: "DefaultTextFont") }
+            ChatPrefs.apiKey = keyField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let m = modelPopup.titleOfSelectedItem { ChatPrefs.model = m }
             self.applyPreferences()
         }
     }
